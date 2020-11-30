@@ -53,10 +53,10 @@ lint :
 	poetry run flake8
 
 requirements.txt : poetry.lock
-	poetry export -f requirements.txt -o requirements.txt
+	poetry export -f requirements.txt --without-hashes -o requirements.txt
 
 requirements-dev.txt : poetry.lock
-	poetry export --dev -f requirements.txt -o requirements-dev.txt
+	poetry export --dev -f requirements.txt --without-hashes -o requirements-dev.txt
 
 shell :
 	poetry run flask shell
