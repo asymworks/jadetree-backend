@@ -52,11 +52,11 @@ export :
 lint :
 	poetry run flake8
 
-requirements.txt : Pipfile.lock
-	poetry lock -r > requirements.txt
+requirements.txt : poetry.lock
+	poetry export -f requirements.txt -o requirements.txt
 
-requirements-dev.txt : Pipfile.lock
-	poetry lock -r -d > requirements-dev.txt
+requirements-dev.txt : poetry.lock
+	poetry export --dev -f requirements.txt -o requirements-dev.txt
 
 shell :
 	poetry run flask shell
