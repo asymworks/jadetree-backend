@@ -1,0 +1,46 @@
+---
+#
+# Docker Compose File for Jade Tree Server Stack
+#
+
+version: '3.7'
+services:
+
+  # PostgreSQL Database
+  db:
+    image: postgres:12.4
+    ports:
+      - 5432:5432
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    env_file:
+      - ./docker/postgres.env
+    restart: always
+
+  # Jadetree Backend
+  backend:
+    image: asymworks/jadetree-backend:latest
+    depends_on:
+      - db
+    ports:
+      - 5000:5000
+    volumes:
+      - type: bind
+        source: ./docker/config.py
+        target: /home/jadetree/config.py:ro
+    restart: always
+
+  # Jadetree Frontend
+  frontend:
+    image: asymworks/jadetree-frontend:latest
+    ports:
+      - 8733:80
+    environment:
+      JADETREE_API_HOST: backend
+      JADETREE_API_PORT: 5000
+      JADETREE_API_SCHEME: http
+      JADETREE_API_PATH: /api/v1
+    restart: always
+
+volumes:
+  db_data:

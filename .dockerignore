@@ -1,0 +1,13 @@
+# Ignore .git
+.git
+
+# Ignore Test and Coverage Outputs
+.htmlcov
+.coverage
+tests/.pytest*
+
+# Ignore Configuration Files
+config/
+
+# Ignore Databases
+*.db
