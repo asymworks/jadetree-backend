@@ -6,6 +6,7 @@
 # =============================================================================
 
 from arrow import Arrow, utcnow
+from babel.numbers import format_currency, format_decimal
 from dataclasses import dataclass
 from hashlib import blake2s
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -214,6 +215,30 @@ class User(TimestampMixin):
     def check_password(self, pw):
         '''Check if the provided password matches the user's'''
         return check_password_hash(self.pw_hash, pw)
+
+    def format_decimal(self, amount, currency=None, accounting=False):
+        '''
+        Format the given amount as decimal, currency, or accounting. If the
+        currency parameter is None, the number will be formatted as a standard
+        decimal number; otherwise, it will be formatted as currency or as an
+        accounting value per the accounting parameter.
+        '''
+        if currency is None:
+            return format_decimal(
+                amount,
+                format=self.fmt_numeric,
+                locale=self.locale,
+                decimal_quantization=False,
+            )
+        else:
+            fmt = self.fmt_accounting if accounting else self.fmt_currency
+            return format_currency(
+                amount,
+                currency,
+                format=fmt,
+                locale=self.locale,
+                format_type='accounting' if accounting else 'standard'
+            )
 
     def set_password(self, pw):
         '''Set the User's Password and generate a new User Hash'''
