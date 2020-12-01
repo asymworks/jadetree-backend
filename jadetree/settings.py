@@ -7,7 +7,7 @@
 
 # Application Name and Version
 APP_NAME = 'Jade Tree'
-APP_VERSION = '0.9.9-alpha'
+APP_VERSION = '0.9.10-alpha'
 
 # Authorization Mode ('personal', 'family', or 'publc')
 AUTH_MODE = 'public'
