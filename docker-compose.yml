@@ -19,7 +19,7 @@ services:
 
   # Jadetree Backend
   backend:
-    image: asymworks/jadetree-backend:latest
+    image: asymworks/jadetree-backend:0.9-alpha
     depends_on:
       - db
     ports:
@@ -32,7 +32,7 @@ services:
 
   # Jadetree Frontend
   frontend:
-    image: asymworks/jadetree-frontend:latest
+    image: asymworks/jadetree-frontend:0.9-alpha
     ports:
       - 8733:80
     environment:
