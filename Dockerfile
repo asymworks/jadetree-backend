@@ -17,6 +17,7 @@ RUN python -m venv venv \
 COPY jadetree jadetree
 COPY migrations migrations
 COPY docker/* ./
+COPY pyproject.toml ./
 RUN mkdir -p /var/lib/jadetree \
   && chown -R jadetree:jadetree /var/lib/jadetree ./ \
   && chmod +x docker-entry.sh
