@@ -5,10 +5,6 @@
 #
 # =============================================================================
 
-# Application Name and Version
-APP_NAME = 'Jade Tree'
-APP_VERSION = '0.9.10-alpha'
-
 # Fallback Localization Settings
 FALLBACK_CURRENCY = 'USD'
 FALLBACK_LANG = 'en'

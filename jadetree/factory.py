@@ -18,9 +18,33 @@ Application default configuration values are found in the
 
 '''
 
+import configparser
+import pathlib
 import os
 
 from flask import Flask
+
+
+def read_version():
+    '''Read the Name and Version String from pyproject.toml'''
+    # Search for pyproject.toml
+    d = pathlib.Path(__file__)
+    name = None
+    version = None
+    while d.parent != d:
+        d = d.parent
+        path = d / 'pyproject.toml'
+        if path.exists():
+            # Use configparser to parse toml like INI to avoid dependency on
+            # tomlkit or similar
+            config = configparser.ConfigParser()
+            config.read(str(path))
+            if 'tool.poetry' in config:
+                name = config['tool.poetry'].get('name').strip('"\'')
+                version = config['tool.poetry'].get('version').strip('"\'')
+                return (name, version)
+
+    return (None, None)
 
 
 def create_app(app_config=None, app_name=None):
@@ -43,6 +67,12 @@ def create_app(app_config=None, app_name=None):
         template_folder='frontend/templates'
     )
 
+    # Load Application Name and Version from pyproject.toml
+    pkg_name, pkg_version = read_version()
+    app.config['APP_NAME'] = pkg_name
+    app.config['APP_VERSION'] = pkg_version
+
+    # Load Default Settings
     app.config.from_object('jadetree.settings')
 
     # Load Configuration File from Environment
