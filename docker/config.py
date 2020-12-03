@@ -5,9 +5,6 @@
 #
 # =============================================================================
 
-# Jade Tree Configuration
-JADETREE_APP_MODE = 'personal'
-
 # Session and Token Keys (development - change for production !!)
 APP_SESSION_KEY = 'jadetree-docker-session-key'
 APP_TOKEN_KEY = 'jadetree-docker-token-key'

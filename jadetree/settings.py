@@ -9,9 +9,6 @@
 APP_NAME = 'Jade Tree'
 APP_VERSION = '0.9.10-alpha'
 
-# Authorization Mode ('personal', 'family', or 'publc')
-AUTH_MODE = 'public'
-
 # Fallback Localization Settings
 FALLBACK_CURRENCY = 'USD'
 FALLBACK_LANG = 'en'
