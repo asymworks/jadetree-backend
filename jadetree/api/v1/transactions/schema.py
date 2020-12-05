@@ -85,3 +85,9 @@ class TransactionSchema(Schema):
     def validate_account_id(self, value):
         if self.context.get('account_id', value) != value:
             raise ValidationError('account_id must match with URI')
+
+
+class ReconcileSchema(Schema):
+    '''Account Statement Reconciliation Information'''
+    statement_date = fields.Date()
+    statement_balance = fields.Decimal(places=4, as_string=True)

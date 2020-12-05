@@ -249,10 +249,13 @@ def q_txn_schema_fields(session, *, reverse=False):
     )
 
 
-def q_txn_account_lines(session, account_id=None, *, reverse=False):
+def q_txn_account_lines(session, account_id=None, *, reverse=False, reconciled=True):
     '''Return TransactionSchema lines for an account (or all user accounts)'''
     q = q_txn_schema_fields(session, reverse=reverse) \
         .filter(Account.role == AccountRole.Personal)
+
+    if not reconciled:
+        q = q.filter(TransactionLine.reconciled == False)   # noqa: E712
 
     if account_id is not None:
         q = q.filter(Account.id == account_id)

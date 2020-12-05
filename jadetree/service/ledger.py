@@ -12,7 +12,8 @@ from datetime import date
 from decimal import Decimal
 
 from jadetree.database.queries import q_txn_account_lines
-from jadetree.domain.models import Account, Category, Transaction
+from jadetree.domain.models import Account, Category, Transaction, \
+    TransactionLine
 from jadetree.domain.types import AccountRole, AccountType, TransactionType
 from jadetree.exc import DomainError, NoResults, Unauthorized
 
@@ -352,6 +353,9 @@ def load_all_lines(session, user, order_by=None, reverse=False):
     '''
     Requires SQLite 3.25.0 or later to use Window Functions
     '''
+    check_session(session)
+    check_user(user, needs_profile=True)
+
     q = q_txn_account_lines(session, reverse=reverse) \
         .filter(Account.user == user)
 
@@ -367,6 +371,9 @@ def load_account_lines(session, user, account_id, order_by=None, reverse=False):
     '''
     Requires SQLite 3.25.0 or later to use Window Functions
     '''
+    check_session(session)
+    check_user(user, needs_profile=True)
+
     a = session.query(Account).get(account_id)
     if a is None:
         raise NoResults('No account found for id {}'.format(account_id))
@@ -395,6 +402,32 @@ def load_single_transaction(session, user, transaction_id):
     q = q_txn_account_lines(session) \
         .filter(Account.id == Transaction.account_id) \
         .filter(Transaction.id == t.id)
+
+    # Return as LedgerTransactionLine items
+    return _load_transaction_lines(session, q)
+
+
+def load_reconcilable_lines(session, user, account_id, order_by=None, reverse=False):
+    '''Load Transactions that are not yet reconciled'''
+    check_session(session)
+    check_user(user, needs_profile=True)
+
+    a = session.query(Account).get(account_id)
+    if a is None:
+        raise NoResults('No account found for id {}'.format(account_id))
+
+    if a.user != user:
+        raise Unauthorized(
+            'Account id {} does not belong to user {}'.format(
+                account_id,
+                user.email,
+            )
+        )
+
+    # Load Ledger Information
+    q = q_txn_account_lines(session, account_id, reverse=reverse, reconciled=False)
+    if order_by is not None:
+        q = q.order_by(None).order_by(order_by)
 
     # Return as LedgerTransactionLine items
     return _load_transaction_lines(session, q)
@@ -441,6 +474,10 @@ def update_transaction(session, user, transaction_id, **kwargs):
 
     # Handle updating a Split Transaction
     if 'splits' in kwargs:
+        for ln in txn.lines:
+            if ln.reconciled:
+                raise DomainError('Cannot modify a reconciled transaction')
+
         new_amount = kwargs.pop('amount', txn.amount)
         new_splits = kwargs.pop('splits')
         split_lines = _parse_splits(
@@ -479,14 +516,13 @@ def update_transaction(session, user, transaction_id, **kwargs):
 
 
 def clear_transaction(
-    session, user, transaction_id, line_id=None, account_id=None, cleared=None,
-    reconciled=None
+    session, user, transaction_id, line_id=None, account_id=None, cleared=None
 ):
     '''Update the transaction cleared status.'''
     if line_id is None and account_id is None:
         raise TypeError('"line_id" or "account_id" must be set')
-    if cleared is None and reconciled is None:
-        raise TypeError('"cleared" or "reconciled" must be set')
+    if cleared is None:
+        raise TypeError('"cleared" must be set to True or False')
 
     txn = _load_transaction(session, user, transaction_id)
     line = None
@@ -524,27 +560,16 @@ def clear_transaction(
                 line_id, account_id
             ))
 
-    is_reconciled = reconciled if reconciled is not None else line.reconciled
-    is_cleared = cleared if cleared is not None else line.cleared
-
-    if is_reconciled and not is_cleared:
+    if line.reconciled:
         raise DomainError(
-            'Transaction Lines must be cleared before they are reconciled'
+            'Cannot change the cleared status of a reconciled transaction'
         )
 
-    if is_reconciled and not line.reconciled:
-        line.reconciled = True
-        line.reconciled_at = date.today()
-
-    if is_cleared and not line.cleared:
+    if cleared and not line.cleared:
         line.cleared = True
         line.cleared_at = date.today()
 
-    if not is_reconciled:
-        line.reconciled = False
-        line.reconciled_at = None
-
-    if not is_cleared:
+    if not cleared:
         line.cleared = False
         line.cleared_at = None
 
@@ -552,3 +577,69 @@ def clear_transaction(
     session.commit()
 
     return txn
+
+
+def reconcile_account(
+    session, user, account_id, statement_date, statement_balance
+):
+    '''Reconcile an Account with a Statement Date and Balance
+
+    The statement balance must equal the sum of the amounts of the transaction
+    lines on this Account that are cleared. If they do not match, a DomainError
+    exception is raised. If the amounts do match, the cleared lines are marked
+    as reconciled.
+
+    Args:
+        session (Session): SQLalchemy Database Session
+        user (User): Jade Tree User
+        account_id (int): Account Id
+        statement_date (date): Statement Date
+        statement_balance (Decimal): Statement Balance
+
+    Returns:
+        list: List of newly reconciled Transactions
+    '''
+    check_session(session)
+    check_user(user, needs_profile=True)
+
+    a = session.query(Account).get(account_id)
+    if a is None:
+        raise NoResults('No account found for id {}'.format(account_id))
+
+    if a.user != user:
+        raise Unauthorized(
+            'Account id {} does not belong to user {}'.format(
+                account_id,
+                user.email,
+            )
+        )
+
+    # Get Cleared Transactions
+    txns = session.query(TransactionLine).join(
+        Transaction, Transaction.id == TransactionLine.transaction_id,
+    ).filter(
+        TransactionLine.account == a,
+        TransactionLine.cleared == True,        # noqa: E712
+        Transaction.date <= statement_date,
+    ).all()
+
+    # Sum Transactions
+    cleared_balance = sum([t.amount for t in txns])
+    if cleared_balance != statement_balance:
+        raise DomainError(
+            'Statement balance of {} does not match cleared balance of {}'.format(
+                format_currency(statement_balance, a.currency),
+                format_currency(cleared_balance, a.currency),
+            )
+        )
+
+    # Reconcile Transactions
+    new_txns = [t for t in txns if not t.reconciled];
+    for t in new_txns:
+        t.reconciled = True
+        t.reconciled_at = statement_date
+
+    session.add_all(new_txns)
+    session.commit()
+
+    return new_txns
