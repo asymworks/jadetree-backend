@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "JadeTree"
-version = "0.9.12a"
+version = "0.9.13a"
 description = "Jade Tree Budgeting Platform Backend"
 authors = ["Jonathan Krauss <jkrauss@asymworks.com>"]
 
