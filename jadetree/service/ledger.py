@@ -634,7 +634,7 @@ def reconcile_account(
         )
 
     # Reconcile Transactions
-    new_txns = [t for t in txns if not t.reconciled];
+    new_txns = [t for t in txns if not t.reconciled]
     for t in new_txns:
         t.reconciled = True
         t.reconciled_at = statement_date
