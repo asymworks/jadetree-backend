@@ -140,6 +140,10 @@ def create_app(app_config=None, app_name=None):
         from .setup import init_setup
         init_setup(app)
 
+        # Initialize Web Sockets
+        from .socketio import init_socketio
+        init_socketio(app)
+
         # Startup Complete
         app.logger.info('{} startup complete'.format(app.config['APP_NAME']))
 

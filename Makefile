@@ -65,10 +65,10 @@ shell-psql :
 	poetry run flask shell
 
 serve :
-	poetry run flask run -h 0.0.0.0
+	poetry run python -m jadetree
 
 serve-psql :
-	poetry run flask run -h 0.0.0.0
+	poetry run python -m jadetree
 
 sqlalchemy :
 	/usr/local/Cellar/sqlite/3.32.1/bin/sqlite3 jadetree-dev.db
