@@ -137,7 +137,7 @@ def create_user_account(
         session.add(p)
         session.commit()
 
-        return a
+        return a, p, None
 
     # Ensure balance date is provided
     if not isinstance(balance, Decimal):
