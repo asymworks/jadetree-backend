@@ -262,7 +262,7 @@ def create_user_account(
     session.add(t)
     session.commit()
 
-    return a
+    return a, p, t
 
 
 def _load_account(session, user, account_id):

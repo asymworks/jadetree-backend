@@ -117,7 +117,7 @@ class BudgetEntryItem(MethodView):
         if auth.current_user().budgets.count == 0:
             raise NoResults('No budget exists for this user')
 
-        entry = budget_service.delete_entry(
+        budget_service.delete_entry(
             db.session,
             auth.current_user(),
             budget_id,
@@ -128,13 +128,11 @@ class BudgetEntryItem(MethodView):
             'delete',
             {
                 'class': 'BudgetEntry',
-                'items': [BudgetEntrySchema().dump(entry)],
+                'items': [BudgetEntrySchema().dump({'id': entry_id})],
             },
             namespace='/api/v1',
             room=auth.current_user().uid_hash
         )
-
-        return entry
 
 
 @blp.route('/budget/entries/ymc/<int:category_id>')

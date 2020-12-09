@@ -102,7 +102,7 @@ class TransactionDetail(MethodView):
             'delete',
             {
                 'class': 'Transaction',
-                'items': [TransactionSchema().dump(txn)],
+                'items': [TransactionSchema().dump({'id': txn.id})],
             },
             namespace='/api/v1',
             room=auth.current_user().uid_hash

@@ -83,7 +83,7 @@ class BudgetCategoryItem(MethodView):
     @blp.response(code=204)
     def delete(self, budget_id, category_id):
         '''Delete a Category or Category Group'''
-        category = budget_service.delete_category(
+        budget_service.delete_category(
             db.session,
             auth.current_user(),
             budget_id,
@@ -94,7 +94,7 @@ class BudgetCategoryItem(MethodView):
             'delete',
             {
                 'class': 'Category',
-                'items': [CategorySchema().dump(category)],
+                'items': [CategorySchema().dump({'id': category_id})],
             },
             namespace='/api/v1',
             room=auth.current_user().uid_hash

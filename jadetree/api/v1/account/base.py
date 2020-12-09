@@ -13,6 +13,8 @@ from jadetree.database import db
 from jadetree.service import account as account_service
 
 from .schema import AccountCreateSchema, AccountSchema
+from ..payee.schema import PayeeSchema
+from ..transactions.schema import TransactionSchema
 
 #: Authentication Service Blueprint
 blp = JTApiBlueprint('account', __name__, description='Account Service')
@@ -35,7 +37,7 @@ class AccountsList(MethodView):
     @blp.response(AccountSchema)
     def post(self, json_data):
         '''Create a new User Account'''
-        acct = account_service.create_user_account(
+        acct, payee, init_txn = account_service.create_user_account(
             db.session,
             auth.current_user(),
             **json_data,
@@ -46,6 +48,26 @@ class AccountsList(MethodView):
             {
                 'class': 'Account',
                 'items': [AccountSchema().dump(acct)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        emit(
+            'create',
+            {
+                'class': 'Payee',
+                'items': [PayeeSchema().dump(payee)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        emit(
+            'create',
+            {
+                'class': 'Transaction',
+                'items': [TransactionSchema().dump(init_txn)],
             },
             namespace='/api/v1',
             room=auth.current_user().uid_hash

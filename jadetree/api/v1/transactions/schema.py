@@ -9,7 +9,7 @@ from marshmallow import Schema, fields, pre_dump, validates, validates_schema, \
     ValidationError
 from marshmallow_enum import EnumField
 
-from jadetree.domain.types import AccountRole, TransactionType
+from jadetree.domain.types import AccountRole, AccountType, TransactionType
 
 
 class TransactionClearanceSchema(Schema):
@@ -41,6 +41,7 @@ class TransactionLineSchema(Schema):
     '''Schema for a Transaction Line'''
     id = fields.Int()
     account_id = fields.Int()
+    account_type = EnumField(AccountType, by_value=True)
 
     role = EnumField(AccountRole, by_value=True)
 
