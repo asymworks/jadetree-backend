@@ -6,6 +6,7 @@
 # =============================================================================
 
 from flask.views import MethodView
+from flask_socketio import emit
 
 from jadetree.api.common import auth
 from jadetree.database import db
@@ -44,12 +45,24 @@ class BudgetEntryList(MethodView):
         if auth.current_user().budgets.count == 0:
             raise NoResults('No budget exists for this user')
 
-        return budget_service.create_entry(
+        entry = budget_service.create_entry(
             db.session,
             auth.current_user(),
             budget_id,
             json_data,
         )
+
+        emit(
+            'create',
+            {
+                'class': 'BudgetEntry',
+                'items': [BudgetEntrySchema().dump(entry)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        return entry
 
 
 @blp.route('/budgets/<int:budget_id>/entries/<int:entry_id>')
@@ -77,13 +90,25 @@ class BudgetEntryItem(MethodView):
         if auth.current_user().budgets.count == 0:
             raise NoResults('No budget exists for this user')
 
-        return budget_service.update_entry(
+        entry = budget_service.update_entry(
             db.session,
             auth.current_user(),
             budget_id,
             entry_id,
             **json_data,
         )
+
+        emit(
+            'update',
+            {
+                'class': 'BudgetEntry',
+                'items': [BudgetEntrySchema().dump(entry)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        return entry
 
     @auth.login_required
     @blp.response(code=204)
@@ -92,12 +117,24 @@ class BudgetEntryItem(MethodView):
         if auth.current_user().budgets.count == 0:
             raise NoResults('No budget exists for this user')
 
-        budget_service.delete_entry(
+        entry = budget_service.delete_entry(
             db.session,
             auth.current_user(),
             budget_id,
             entry_id,
         )
+
+        emit(
+            'delete',
+            {
+                'class': 'BudgetEntry',
+                'items': [BudgetEntrySchema().dump(entry)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        return entry
 
 
 @blp.route('/budget/entries/ymc/<int:category_id>')

@@ -179,6 +179,8 @@ def delete_category(session, user, budget_id, category_id):
     session.delete(c)
     session.commit()
 
+    return c
+
 
 def update_category(session, user, budget_id, category_id, **kwargs):
     '''Update a Category or Category Group'''

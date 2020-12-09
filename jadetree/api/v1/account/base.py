@@ -6,6 +6,7 @@
 # =============================================================================
 
 from flask.views import MethodView
+from flask_socketio import emit
 
 from jadetree.api.common import JTApiBlueprint, auth
 from jadetree.database import db
@@ -34,11 +35,23 @@ class AccountsList(MethodView):
     @blp.response(AccountSchema)
     def post(self, json_data):
         '''Create a new User Account'''
-        return account_service.create_user_account(
+        acct = account_service.create_user_account(
             db.session,
             auth.current_user(),
             **json_data,
         )
+
+        emit(
+            'create',
+            {
+                'class': 'Account',
+                'items': [AccountSchema().dump(acct)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        return acct
 
 
 @blp.route('/accounts/<int:account_id>')

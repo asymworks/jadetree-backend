@@ -9,6 +9,7 @@ from datetime import date
 
 from flask.views import MethodView
 from flask_smorest import abort
+from flask_socketio import emit
 
 from jadetree.api.common import JTApiBlueprint, auth
 from jadetree.database import db
@@ -39,13 +40,25 @@ class BudgetList(MethodView):
         '''Create a new Budget'''
         # TODO: Provide Category Templates
         from jadetree.service.budget.defaults import JADETREE_DEFAULT_CATEGORIES
-        return budget_service.create_budget(
+        budget = budget_service.create_budget(
             db.session,
             auth.current_user(),
             json_data['name'],
             json_data['currency'],
             JADETREE_DEFAULT_CATEGORIES,
         )
+
+        emit(
+            'create',
+            {
+                'class': 'Budget',
+                'items': [BudgetSchema().dump(budget)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        return budget
 
 
 @blp.route('/budgets/<int:budget_id>')
@@ -70,12 +83,24 @@ class BudgetItem(MethodView):
             raise NoResults('No budget exists for this user')
 
         budget_id = auth.current_user().budgets[0].id
-        return budget_service.update_budget(
+        budget = budget_service.update_budget(
             db.session,
             auth.current_user(),
             budget_id,
             **json_data,
         )
+
+        emit(
+            'update',
+            {
+                'class': 'Budget',
+                'items': [BudgetSchema().dump(budget)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        return budget
 
 
 @blp.route('/budgets/<int:budget_id>/data')

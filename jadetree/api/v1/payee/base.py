@@ -6,6 +6,7 @@
 # =============================================================================
 
 from flask.views import MethodView
+from flask_socketio import emit
 
 from jadetree.api.common import JTApiBlueprint, auth
 from jadetree.database import db
@@ -32,11 +33,23 @@ class PayeeList(MethodView):
     @blp.response(PayeeSchema)
     def post(self, json_data):
         '''Create new Payee'''
-        return payee_service.create_payee(
+        payee = payee_service.create_payee(
             db.session,
             auth.current_user(),
             **json_data,
         )
+
+        emit(
+            'create',
+            {
+                'class': 'Payee',
+                'items': [PayeeSchema().dump(payee)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        return payee
 
 
 @blp.route('/payees/<int:payee_id>')

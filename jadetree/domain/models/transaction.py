@@ -51,7 +51,7 @@ class TransactionEntry(object):
 @dataclass
 class TransactionLine(object):
     '''
-    Holds all the `TransactionSplit` items associated with a single account
+    Holds all the `TransactionEntry` items associated with a single account
     ledger line for a `Transaction` (i.e. the total amount of a transaction
     associated with a particular account for all splits).
     '''
@@ -86,10 +86,26 @@ class TransactionLine(object):
 
         return line_amount
 
+    @property
+    def currency(self):
+        '''Get the Account Currency for this line'''
+        if self.account is None:
+            return None
+
+        return self.account.currency
+
+    @property
+    def role(self):
+        '''Get the Account Role for this line'''
+        if self.account is None:
+            return None
+
+        return self.account.role
+
     def __repr__(self):
         return '<TransactionLine {} {}>'.format(
             self.amount,
-            self.account.currency
+            self.currency
         )
 
 
@@ -147,6 +163,14 @@ class TransactionSplit(object):
         # Else it must be in the User Base Currency
         assert split_currency == self.transaction.user.currency
         return split_amount / (self.transaction.foreign_exchrate or 1)
+
+    @property
+    def currency(self):
+        '''Get the Transaction Currency for this Split'''
+        if self.transaction is None:
+            return None
+
+        return self.transaction.currency
 
     @property
     def is_transfer(self):

@@ -479,9 +479,10 @@ def update_transaction(session, user, transaction_id, **kwargs):
                 raise DomainError('Cannot modify a reconciled transaction')
 
         new_amount = kwargs.pop('amount', txn.amount)
+        new_currency = kwargs.pop('currency', txn.currency)
         new_splits = kwargs.pop('splits')
         split_lines = _parse_splits(
-            session, user, txn.account, new_amount, txn.currency, new_splits
+            session, user, txn.account, new_amount, new_currency, new_splits
         )
 
         # Clear existing splits
