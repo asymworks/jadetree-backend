@@ -201,7 +201,7 @@ def q_txn_schema_fields(session, *, reverse=False):
             sq_txn_bals.c.amount.label('amount'),
             sq_txn_bals.c.balance.label('balance'),
             sq_txn_bals.c.currency.label('currency'),
-            Account.currency.label('account_currency'),
+            Transaction.currency.label('transaction_currency'),
             Transaction.foreign_currency.label('foreign_currency'),
             Transaction.foreign_exchrate.label('foreign_exchrate'),
             TransactionLine.cleared.label('cleared'),

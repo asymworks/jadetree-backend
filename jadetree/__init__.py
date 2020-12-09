@@ -4,5 +4,3 @@
 # Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
 #
 # =============================================================================
-
-#: Jade Tree Application Entry Point

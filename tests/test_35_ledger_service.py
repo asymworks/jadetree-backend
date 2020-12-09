@@ -36,9 +36,9 @@ def default_accounts(session, user_with_profile, budget_id):
     cats = []
 
     # Create personal accounts for Checking, Savings and CC
-    accts.append(account_service.create_user_account(session, user_with_profile, 'Checking', AccountType.Asset, 'USD', Decimal(10000), date(2020, 1, 1), AccountSubtype.Checking, budget_id=budget_id))
-    accts.append(account_service.create_user_account(session, user_with_profile, 'Savings', AccountType.Asset, 'USD', Decimal(50000), date(2020, 1, 1), AccountSubtype.Savings, budget_id=budget_id))
-    accts.append(account_service.create_user_account(session, user_with_profile, 'Credit Card', AccountType.Liability, 'USD', Decimal(500), date(2020, 1, 1), AccountSubtype.CreditCard, budget_id=budget_id))
+    accts.append(account_service.create_user_account(session, user_with_profile, 'Checking', AccountType.Asset, 'USD', Decimal(10000), date(2020, 1, 1), AccountSubtype.Checking, budget_id=budget_id)[0])
+    accts.append(account_service.create_user_account(session, user_with_profile, 'Savings', AccountType.Asset, 'USD', Decimal(50000), date(2020, 1, 1), AccountSubtype.Savings, budget_id=budget_id)[0])
+    accts.append(account_service.create_user_account(session, user_with_profile, 'Credit Card', AccountType.Liability, 'USD', Decimal(500), date(2020, 1, 1), AccountSubtype.CreditCard, budget_id=budget_id)[0])
 
     # Create budget categories for Rent, Groceries, and Insurance
     g1 = budget_service.create_budget_category_group(session, user_with_profile, budget_id, 'Monthly Expenses')

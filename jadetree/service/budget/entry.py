@@ -192,3 +192,5 @@ def delete_entry(session, user, budget_id, entry_id):
     # Delete Entry
     session.delete(e)
     session.commit()
+
+    return e

@@ -27,7 +27,7 @@ def budget_id(session, user_with_profile):
 
 
 def test_create_user_account_zero_balance(session, user_with_profile):
-    a = account_service.create_user_account(
+    a, payee, txn = account_service.create_user_account(
         session=session,
         user=user_with_profile,
         name='Test Account',
@@ -51,7 +51,7 @@ def test_create_user_account_zero_balance(session, user_with_profile):
 
 
 def test_create_user_asset_account_with_capital(session, user_with_profile):
-    a = account_service.create_user_account(
+    a, payee, txn = account_service.create_user_account(
         session=session,
         user=user_with_profile,
         name='Test Account',
@@ -100,7 +100,7 @@ def test_create_user_asset_account_with_capital(session, user_with_profile):
 
 
 def test_create_user_liability_account_with_capital(session, user_with_profile):
-    a = account_service.create_user_account(
+    a, payee, txn = account_service.create_user_account(
         session=session,
         user=user_with_profile,
         name='Test Account',
@@ -149,7 +149,7 @@ def test_create_user_liability_account_with_capital(session, user_with_profile):
 
 
 def test_create_user_asset_account_with_income(session, user_with_profile, budget_id):
-    a = account_service.create_user_account(
+    a, payee, txn = account_service.create_user_account(
         session=session,
         user=user_with_profile,
         budget_id=budget_id,
@@ -206,7 +206,7 @@ def test_create_user_asset_account_with_income(session, user_with_profile, budge
 
 
 def test_create_user_liability_account_with_debt(session, user_with_profile, budget_id):
-    a = account_service.create_user_account(
+    a, payee, txn = account_service.create_user_account(
         session=session,
         user=user_with_profile,
         budget_id=budget_id,

@@ -16,6 +16,8 @@ from .transactions import blp as transaction_api
 from .user import blp as user_api
 from .version import blp as version_api
 
+from .socketio import init_api_socketio
+
 __all__ = ('init_api', )
 
 #: Global Api Objects
@@ -38,6 +40,9 @@ def init_api(app):
     api_v1.register_blueprint(transaction_api, url_prefix='/api/v1')
     api_v1.register_blueprint(user_api, url_prefix='/api/v1')
     api_v1.register_blueprint(version_api, url_prefix='/api/v1')
+
+    # Initialize SocketIO Handlers
+    init_api_socketio('/api/v1')
 
     # Notify Initialization Complete
     app.logger.debug('API v1 Initialized')

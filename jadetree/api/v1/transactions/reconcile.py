@@ -6,6 +6,7 @@
 # =============================================================================
 
 from flask.views import MethodView
+from flask_socketio import emit
 
 from jadetree.api.common import auth
 from jadetree.database import db
@@ -34,9 +35,21 @@ class ReconcileView(MethodView):
     @blp.response(TransactionSchema(many=True))
     def post(self, json_data, account_id):
         '''Reconcile the Account with a Statement'''
-        return ledger_service.reconcile_account(
+        txns = ledger_service.reconcile_account(
             db.session,
             auth.current_user(),
             account_id,
             **json_data,
         )
+
+        emit(
+            'create',
+            {
+                'class': 'Transaction',
+                'items': [TransactionSchema(many=True).dump(txns)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        return txns

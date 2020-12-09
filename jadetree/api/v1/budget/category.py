@@ -6,6 +6,7 @@
 # =============================================================================
 
 from flask.views import MethodView
+from flask_socketio import emit
 
 from jadetree.api.common import auth
 from jadetree.database import db
@@ -34,9 +35,9 @@ class BudgetCategoryList(MethodView):
     @blp.response(CategorySchema)
     def post(self, json_data, budget_id):
         '''Create a new Category or Category Group'''
-        print(json_data)
+        ret = None
         if 'parent_id' in json_data and json_data['parent_id'] is not None:
-            return budget_service.create_budget_category(
+            ret = budget_service.create_budget_category(
                 db.session,
                 auth.current_user(),
                 budget_id,
@@ -44,12 +45,24 @@ class BudgetCategoryList(MethodView):
             )
 
         else:
-            return budget_service.create_budget_category_group(
+            ret = budget_service.create_budget_category_group(
                 db.session,
                 auth.current_user(),
                 budget_id,
                 **json_data
             )
+
+        emit(
+            'create',
+            {
+                'class': 'Category',
+                'items': [CategorySchema().dump(ret)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        return ret
 
 
 @blp.route('/budgets/<int:budget_id>/categories/<int:category_id>')
@@ -77,15 +90,37 @@ class BudgetCategoryItem(MethodView):
             category_id,
         )
 
+        emit(
+            'delete',
+            {
+                'class': 'Category',
+                'items': [CategorySchema().dump({'id': category_id})],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
     @auth.login_required
     @blp.arguments(CategorySchema)
     @blp.response(CategorySchema)
     def put(self, json_data, budget_id, category_id):
         '''Update a Category or Category Group'''
-        return budget_service.update_category(
+        category = budget_service.update_category(
             db.session,
             auth.current_user(),
             budget_id,
             category_id,
             **json_data,
         )
+
+        emit(
+            'update',
+            {
+                'class': 'Category',
+                'items': [CategorySchema().dump(category)],
+            },
+            namespace='/api/v1',
+            room=auth.current_user().uid_hash
+        )
+
+        return category

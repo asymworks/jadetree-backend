@@ -5,7 +5,10 @@
 #
 # =============================================================================
 
-from . import base, ledger, reconcile           # noqa: F401
-from .base import blp
+#: Jade Tree Application Entry Point for Flask Socket.io Server
 
-__all__ = ('blp', )
+from .factory import create_app
+from .socketio import socketio
+app = create_app()
+
+socketio.run(app)
