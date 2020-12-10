@@ -9,7 +9,7 @@ export JADETREE_PORT=${JADETREE_PORT:-5000}
 source venv/bin/activate
 
 if [ "$1" = 'jadetree' ]; then
-  exec gunicorn -b :${JADETREE_PORT} --access-logfile - --error-logfile - jadetree.wsgi:app
+  exec gunicorn -k eventlet -b :${JADETREE_PORT} --access-logfile - --error-logfile - jadetree.wsgi:app
 fi
 
 if [ "$1" = 'db' ]; then

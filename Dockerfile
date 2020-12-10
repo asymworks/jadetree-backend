@@ -7,7 +7,8 @@ WORKDIR /home/jadetree
 
 RUN apt-get update \
   && apt-get -y upgrade \
-  && apt-get -y install --no-install-recommends build-essential libpq-dev
+  && apt-get -y install --no-install-recommends build-essential \
+    libpq-dev libmariadbclient-dev
 
 COPY requirements.txt ./
 RUN python -m venv venv \

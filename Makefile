@@ -35,6 +35,9 @@ db-populate :
 	poetry run python scripts/load_core_db.py
 	poetry run python scripts/load_test_transactions.py
 
+docker-local :
+	docker build . -t jadetree-backend:local
+
 docs :
 	$(MAKE) -C docs html
 
