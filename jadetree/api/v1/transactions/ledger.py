@@ -46,7 +46,6 @@ class LedgerList(MethodView):
                 'class': 'Transaction',
                 'items': [TransactionSchema().dump(txn)],
             },
-            namespace='/api/v1',
             room=auth.current_user().uid_hash
         )
 
@@ -85,7 +84,6 @@ class AccountLedgerList(MethodView):
                 'class': 'Transaction',
                 'items': [TransactionSchema().dump(txn)],
             },
-            namespace='/api/v1',
             room=auth.current_user().uid_hash
         )
 

@@ -14,7 +14,12 @@ __all__ = ('socketio', 'init_socketio')
 
 def init_socketio(app):
     '''Initialize the Web Socket Handler'''
-    socketio.init_app(app, cors_allowed_origins='*')
+    socketio_opts = {
+        'cors_allowed_origins': '*',
+        'logger': app.config.get('SOCKETIO_LOGGING', False),
+        'engineio_logger': app.config.get('ENGINEIO_LOGGING', False),
+    }
+    socketio.init_app(app, **socketio_opts)
 
     # Notify Initialization
     app.logger.debug('Web Sockets Initialized')

@@ -48,7 +48,6 @@ class ReconcileView(MethodView):
                 'class': 'Transaction',
                 'items': [TransactionSchema(many=True).dump(txns)],
             },
-            namespace='/api/v1',
             room=auth.current_user().uid_hash
         )
 

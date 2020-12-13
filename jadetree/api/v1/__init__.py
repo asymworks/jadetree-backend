@@ -42,7 +42,7 @@ def init_api(app):
     api_v1.register_blueprint(version_api, url_prefix='/api/v1')
 
     # Initialize SocketIO Handlers
-    init_api_socketio('/api/v1')
+    init_api_socketio('/')
 
     # Notify Initialization Complete
     app.logger.debug('API v1 Initialized')

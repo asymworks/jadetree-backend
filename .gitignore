@@ -13,6 +13,9 @@ docs/_build/*
 # Logging
 log/*
 
+# IDE
+.vscode
+
 # ---> Node
 # Logs
 logs
