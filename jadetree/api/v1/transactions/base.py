@@ -46,6 +46,7 @@ class TransactionList(MethodView):
                 'class': 'Transaction',
                 'items': [TransactionSchema().dump(txn)],
             },
+            namespace='/',
             room=auth.current_user().uid_hash
         )
 
@@ -82,6 +83,7 @@ class TransactionDetail(MethodView):
                 'class': 'Transaction',
                 'items': [TransactionSchema().dump(txn)],
             },
+            namespace='/',
             room=auth.current_user().uid_hash
         )
 
@@ -102,6 +104,7 @@ class TransactionDetail(MethodView):
                 'class': 'Transaction',
                 'items': [TransactionSchema().dump({'id': txn.id})],
             },
+            namespace='/',
             room=auth.current_user().uid_hash
         )
 
@@ -141,6 +144,7 @@ class TransactionClearing(MethodView):
                 'class': 'Transaction',
                 'items': [TransactionSchema().dump(txn)],
             },
+            namespace='/',
             room=auth.current_user().uid_hash
         )
 
