@@ -1,0 +1,22 @@
+An error was logged on the production Jade Tree server at {{ record.asctime }}
+with the following information and debugging context:
+
+  Error Severity: {{ record.levelname }}
+  Error Message: {{ record.message }}
+  Server Module: {{ record.module }}
+
+  Exception Class: {{ exc_class }}
+  Exception Message: '{{ exc_msg }}'
+
+  Request URI: {{ request.url }}
+  Remote Address: {{ request.remote_addr }}
+
+{% if stack_trace %}
+A stack trace for the exception is below:
+-----------------------------------------
+{% for trace in stack_trace %}
+File "{{ trace.filename }}", line {{ trace.lineno }}, in {{ trace.name }}
+  {{ trace.line }}
+
+{% endfor %}
+{% endif %}

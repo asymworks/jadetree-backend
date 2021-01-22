@@ -1,0 +1,119 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all
+        align="center"
+        background-color="#fff"
+        color="#000"
+        font-family="'Helvetica Neue',Arial,sans-serif"
+        font-size="16px"
+        line-height="150%"
+        />
+      <mj-class name="header"
+        align="center"
+        color="#555"
+        font-size="32px"
+        font-weight="bold"
+        line-height="120%"
+        />
+      <mj-class name="footer"
+        align="left"
+        color="#575757"
+        font-size="12px"
+        line-height="110%"
+        />
+    </mj-attributes>
+    <mj-preview>Jade Tree Server Error</mj-preview>
+  </mj-head>
+  <mj-body width="800px">
+    
+<mj-section border-bottom="5px solid #333957">
+  <mj-column>
+    <mj-spacer height="10px" />
+  </mj-column>
+</mj-section>
+<mj-wrapper border="1px solid #333957">
+  <mj-section>
+    <mj-column>
+      <mj-text mj-class="header">Jade Tree Server Error</mj-text>
+      
+<mj-text align="left">An error was logged on the Jade Tree production server</mj-text>
+<mj-table>
+  <tr style="border-bottom:1px solid #ecedee;text-align:left;padding:15px 0;">
+    <th style="padding: 0 15px 0 0;">Context Variable</th>
+    <th style="padding: 0 0 0 15px;">Value</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Error Severity</th>
+    <td style="padding: 0 0 0 15px;">{{ record.levelname }}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Error Message</th>
+    <td style="padding: 0 0 0 15px;">{{ record.message }}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Server Module</th>
+    <td style="padding: 0 0 0 15px;">{{ record.module }}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Exception Class</th>
+    <td style="padding: 0 0 0 15px;">{{ exc_class }}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Exception Message</th>
+    <td style="padding: 0 0 0 15px;">{{ exc_msg }}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Request URI</th>
+    <td style="padding: 0 0 0 15px;">{{ request.url }}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Remote Address</th>
+    <td style="padding: 0 0 0 15px;">{{ request.remote_addr }}</th>
+  </tr>
+</mj-table>
+
+    </mj-column>
+  </mj-section>
+  
+{% if stack_trace %}
+<mj-section>
+  <mj-column>
+    <mj-text align="left" font-weight="bold">Traceback (most recent call last):</mj-text>
+    <mj-table>
+      {% for trace in stack_trace %}
+      <tr>
+        <td>
+        	File:
+          <span style="font-family:'Lucida Console',Monaco,'Courier New',Courier,monospace;font-size:12px">{{ trace.filename }}</span>,
+          at line
+          <span style="font-family:'Lucida Console',Monaco,'Courier New',Courier,monospace;font-size:12px;font-weight:light">{{ trace.lineno }}</span>,
+          in
+          <span style="font-family:'Lucida Console',Monaco,'Courier New',Courier,monospace;font-size:12px">{{ trace.name }}</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="border:1px solid gray;color:#444;font-family:'Lucida Console',Monaco,'Courier New',Courier,monospace;font-size:12px;padding:0 5px">
+        	{{ trace.line }}
+        </td>
+      </tr>
+      {% endfor %}
+    </mj-table>
+  </mj-column>
+</mj-section>
+{% endif %}
+
+</mj-wrapper>
+<mj-section>
+  <mj-column>
+    
+<mj-text mj-class="footer">
+  This message was sent to {{ email }} by Jade Tree
+  because you are listed as a system administrator.
+</mj-text>
+
+  </mj-column>
+</mj-section>
+
+  </mj-body>
+</mjml>

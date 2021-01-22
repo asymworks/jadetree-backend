@@ -55,6 +55,9 @@ export :
 lint :
 	poetry run flake8
 
+mjml :
+	$(MAKE) -C mjml mjml-prod
+
 requirements.txt : poetry.lock
 	poetry export -f requirements.txt --without-hashes -o requirements.txt
 
@@ -91,4 +94,5 @@ all: serve
 	db-init db-migrate db-upgrade db-downgrade db-populate \
 	docs docs-clean docs-serve \
 	lint shell serve shell-psql serve-psql \
-	test test-wip test-x
+	test test-wip test-x \
+	mjml

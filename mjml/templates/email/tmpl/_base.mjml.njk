@@ -1,0 +1,31 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all
+        align="center"
+        background-color="#fff"
+        color="#000"
+        font-family="'Helvetica Neue',Arial,sans-serif"
+        font-size="16px"
+        line-height="150%"
+        />
+      <mj-class name="header"
+        align="center"
+        color="#555"
+        font-size="32px"
+        font-weight="bold"
+        line-height="120%"
+        />
+      <mj-class name="footer"
+        align="left"
+        color="#575757"
+        font-size="12px"
+        line-height="110%"
+        />
+    </mj-attributes>
+    <mj-preview>{% block preview %}{% endblock %}</mj-preview>
+  </mj-head>
+  <mj-body {% block body_attrs %}{% endblock %}>
+    {% block body %}{% endblock %}
+  </mj-body>
+</mjml>

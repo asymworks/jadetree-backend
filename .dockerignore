@@ -11,3 +11,6 @@ config/
 
 # Ignore Databases
 *.db
+
+# Ignore node_packages
+node_modules/

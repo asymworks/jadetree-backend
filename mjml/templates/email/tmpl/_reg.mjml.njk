@@ -1,0 +1,32 @@
+{% extends "tmpl/_base.mjml.njk" %}
+
+{% block body %}
+<mj-section border-bottom="5px solid #333957">
+  <mj-column>
+    <mj-spacer height="10px" />
+  </mj-column>
+</mj-section>
+<mj-wrapper border="1px solid #333957">
+  <mj-section>
+    <mj-column>
+      <mj-image width="64px" src="https://i.imgur.com/KO1vcE9.png" alt="Jade Tree"></mj-image>
+      <mj-text mj-class="header">{% block body_header %}{% endblock body_header %}</mj-text>
+      {% block body_content %}
+      {% endblock body_content %}
+    </mj-column>
+  </mj-section>
+  {% block body_secondary %}
+  {% endblock body_secondary %}
+</mj-wrapper>
+<mj-section>
+  <mj-column>
+    {% block footer %}
+    <mj-text mj-class="footer">
+      This message was sent to {% raw %}{{ email }}{% endraw %} by Jade Tree.
+      If you did not request this email, please report this to
+      <a href="mailto:abuse@jadetree.io">abuse@jadetree.io</a>.
+    </mj-text>
+    {% endblock footer %}
+  </mj-column>
+</mj-section>
+{% endblock %}

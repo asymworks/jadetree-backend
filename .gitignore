@@ -7,6 +7,9 @@ docs/_build/*
 !config/test.py
 !.gitkeep
 
+# MacOS
+.DS_Store
+
 # Databases
 *.db
 

@@ -1,0 +1,76 @@
+{% extends "tmpl/_adm.mjml.njk" %}
+{% block preview %}Jade Tree Server Error{% endblock %}
+
+{% block body_header %}Jade Tree Server Error{% endblock body_header %}
+{% block body_content %}
+<mj-text align="left">An error was logged on the Jade Tree production server</mj-text>
+<mj-table>
+  <tr style="border-bottom:1px solid #ecedee;text-align:left;padding:15px 0;">
+    <th style="padding: 0 15px 0 0;">Context Variable</th>
+    <th style="padding: 0 0 0 15px;">Value</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Error Severity</th>
+    <td style="padding: 0 0 0 15px;">{% raw %}{{ record.levelname }}{% endraw %}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Error Message</th>
+    <td style="padding: 0 0 0 15px;">{% raw %}{{ record.message }}{% endraw %}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Server Module</th>
+    <td style="padding: 0 0 0 15px;">{% raw %}{{ record.module }}{% endraw %}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Exception Class</th>
+    <td style="padding: 0 0 0 15px;">{% raw %}{{ exc_class }}{% endraw %}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Exception Message</th>
+    <td style="padding: 0 0 0 15px;">{% raw %}{{ exc_msg }}{% endraw %}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Request URI</th>
+    <td style="padding: 0 0 0 15px;">{% raw %}{{ request.url }}{% endraw %}</th>
+  </tr>
+  <tr>
+    <td style="padding: 0 15px 0 0;">Remote Address</th>
+    <td style="padding: 0 0 0 15px;">{% raw %}{{ request.remote_addr }}{% endraw %}</th>
+  </tr>
+</mj-table>
+{% endblock body_content %}
+{% block body_secondary %}
+{% raw %}{% if stack_trace %}{% endraw %}
+<mj-section>
+  <mj-column>
+    <mj-text align="left" font-weight="bold">Traceback (most recent call last):</mj-text>
+    <mj-table>
+      {% raw %}{% for trace in stack_trace %}{% endraw %}
+      <tr>
+        <td>
+        	File:
+          <span style="font-family:'Lucida Console',Monaco,'Courier New',Courier,monospace;font-size:12px">{% raw %}{{ trace.filename }}{% endraw %}</span>,
+          at line
+          <span style="font-family:'Lucida Console',Monaco,'Courier New',Courier,monospace;font-size:12px;font-weight:light">{% raw %}{{ trace.lineno }}{% endraw %}</span>,
+          in
+          <span style="font-family:'Lucida Console',Monaco,'Courier New',Courier,monospace;font-size:12px">{% raw %}{{ trace.name }}{% endraw %}</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="border:1px solid gray;color:#444;font-family:'Lucida Console',Monaco,'Courier New',Courier,monospace;font-size:12px;padding:0 5px">
+        	{% raw %}{{ trace.line }}{% endraw %}
+        </td>
+      </tr>
+      {% raw %}{% endfor %}{% endraw %}
+    </mj-table>
+  </mj-column>
+</mj-section>
+{% raw %}{% endif %}{% endraw %}
+{% endblock body_secondary %}
+
+{% block footer %}
+<mj-text mj-class="footer">
+  This message was sent to {% raw %}{{ email }}{% endraw %} by Jade Tree
+  because you are listed as a system administrator.
+</mj-text>
+{% endblock footer %}

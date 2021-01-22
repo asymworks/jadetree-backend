@@ -19,3 +19,8 @@ APP_TOKEN_VALIDITY = 7200
 # Development Database Settings (overridden by PyTest app_config Fixture)
 DB_DRIVER = 'sqlite'
 DB_FILE = 'jadetree-test.db'
+
+# Mail Configuration
+MAIL_SERVER = 'localhost'
+MAIL_SENDER = 'test@localhost'
+MAIL_SUPPRESS_SEND = True

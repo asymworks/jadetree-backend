@@ -1,0 +1,30 @@
+{% extends "tmpl/_reg.mjml.njk" %}
+{% block preview %}Welcome to Jade Tree{% endblock %}
+
+{% block body_header %}Welcome to Jade Tree{% endblock body_header %}
+{% block body_content %}
+<mj-text>
+  Thank you for confirming your email address! You may now log in to Jade Tree
+  and set up your profile to begin budgeting.
+</mj-text>
+<mj-button background-color="#2F67F6" color="#fff" font-size="15px" font-family="'Helvetica Neue',Arial,sans-serif" inner-padding="15px 25px" href="{% raw %}{{ url_for('LoginView:index', _external=True) }}{% endraw %}">Log In</mj-button>
+<mj-text>Or log in using this link:</mj-text>
+<mj-text line-height="100%">
+  <a href="{% raw %}{{ url_for('LoginView:index', _external=True) }}{% endraw %}">{% raw %}{{ url_for('LoginView:index', _external=True) }}{% endraw %}</a>
+{% endblock body_content %}
+{% block body_secondary %}
+<mj-section>
+  <mj-column>
+    <mj-text mj-class="header">Need Help?</mj-text>
+    <mj-text>Please send feedback or bug info to <a href="mailto:info@jadetree.io">info@jadetree.io</a></mj-text>
+  </mj-column>
+</mj-section>
+{% endblock body_secondary %}
+
+{% block footer %}
+<mj-text mj-class="footer">
+  This message was sent to {% raw %}{{ email }}{% endraw %} by Jade Tree. If
+  you did not request this email, please report this to
+  <a href="abuse@jadetree.io">abuse@jadetree.io</a>.
+</mj-text>
+{% endblock footer %}
