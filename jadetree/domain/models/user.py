@@ -1,9 +1,8 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree User Domain Model.
+
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
+"""
 
 from dataclasses import dataclass
 from hashlib import blake2s
@@ -19,8 +18,7 @@ __all__ = ('User', )
 
 @dataclass
 class User(TimestampMixin):
-    '''
-    Holds user information for a Jade Tree user.
+    """Holds user information for a Jade Tree user.
 
     Users can also set preferences for language, default currency, and
     formatting for numbers, currency, dates, and times.  Custom formatting
@@ -168,7 +166,7 @@ class User(TimestampMixin):
         string for the locale. Must be a valid format string complying with
         `Unicode LDML`_.
 
-    '''
+    """
     __hash__ = object.__hash__
 
     email: str = None
@@ -206,7 +204,7 @@ class User(TimestampMixin):
 
     # Domain Logic
     def _generate_user_hash(self):
-        '''Create a new User Hash for the user_id field'''
+        """Create a new User Hash for the user_id field."""
         ts = f'{utcnow()}'.encode('ascii')
         h = blake2s(digest_size=16)
         h.update(self.email.encode('ascii'))
@@ -214,16 +212,17 @@ class User(TimestampMixin):
         return h.hexdigest()
 
     def check_password(self, pw):
-        '''Check if the provided password matches the user's'''
+        """Check if the provided password matches the user's."""
         return check_password_hash(self.pw_hash, pw)
 
     def format_decimal(self, amount, currency=None, accounting=False):
-        '''
+        """Format a decimal number.
+
         Format the given amount as decimal, currency, or accounting. If the
         currency parameter is None, the number will be formatted as a standard
         decimal number; otherwise, it will be formatted as currency or as an
         accounting value per the accounting parameter.
-        '''
+        """
         if currency is None:
             return format_decimal(
                 amount,
@@ -241,54 +240,67 @@ class User(TimestampMixin):
                 format_type='accounting' if accounting else 'standard'
             )
 
-    def set_password(self, pw):
-        '''Set the User's Password and generate a new User Hash'''
+    def set_password(self, pw, update_hash=True):
+        """Set the User's Password.
+
+        Change or set the user password and create a new user hash so that
+        any login tokens referencing the current user will be invalidated and
+        the sessions must log in again with the new password. Set the
+        `update_hash` parameter to false to keep all sessions logged in.
+
+        Args:
+            pw: new password
+            update_hash: Optional; If update_hash is False, the user uid_hash
+                will not be updated, and all currently logged in sessions can
+                continue. The default is to update the uid_hash value so that
+                all currently logged in sessions are required to log in again
+                with the new password.
+        """
         self.pw_hash = generate_password_hash(pw)
-        self.uid_hash = self._generate_user_hash()
+        if update_hash:
+            self.uid_hash = self._generate_user_hash()
 
     # Login Helpers
     def get_id(self):
-        '''Adapter Method for Flask-Login'''
+        """Return a unique User Id Hash."""
         return self.uid_hash
 
     @property
     def has_profile(self):
+        """Check if the User's Profile is set up."""
         return self.profile_setup
 
     @property
     def is_active(self):
-        '''Check if a User object is active'''
+        """Check if a User object is active."""
         return self.active
 
     @property
     def is_anonymous(self):
-        '''Check if a User object is an anonymous user'''
+        """Check if a User object is an anonymous user."""
         return False
 
     @property
     def is_authenticated(self):
-        '''Check if a User object is an authenticated user'''
+        """Check if a User object is an authenticated user."""
         return True
 
     # Helpers
     def __eq__(self, other):
-        '''
-        Checks the equality of two `User` objects using :meth:`get_id`.
-        '''
+        """Checks the equality of two `User` objects using :meth:`get_id`."""
         if isinstance(other, User):
             return self.get_id() == other.get_id()
         return NotImplemented
 
     def __ne__(self, other):
-        '''
-        Checks the inequality of two `User` objects using :meth:`get_id`.
-        '''
+        """Checks the inequality of two `User` objects using :meth:`get_id`."""
         equal = self.__eq__(other)
         if equal is NotImplemented:
             return NotImplemented
         return not equal
 
     def __repr__(self):
+        """Return a string representation of the User."""
         return '<User {} [{}]>'.format(
             self.name,
             self.email

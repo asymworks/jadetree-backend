@@ -1,23 +1,16 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Server Setup API.
+
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
+"""
 
 from flask import current_app
 from flask.views import MethodView
 from marshmallow import Schema, ValidationError, fields, validates, validates_schema
 
-from jadetree.api.common import JTApiBlueprint
+from jadetree.api.common import JTApiBlueprint, JTPasswordValidator
 from jadetree.database import db
 from jadetree.exc import Error
-from jadetree.service.validator import (
-    HasLowerCaseValidator,
-    HasNumberValidator,
-    HasUpperCaseValidator,
-    LengthValidator,
-)
 from jadetree.setup import JT_SERVER_MODES, setup_jadetree
 
 #: Authentication Service Blueprint
@@ -25,15 +18,16 @@ blp = JTApiBlueprint('setup', __name__, description='Server Setup Service')
 
 
 class SetupSchema(Schema):
-    '''Schema for Jade Tree Server Setup'''
+    """Schema for Jade Tree Server Setup."""
     mode = fields.Str(required=True)
     email = fields.Email(required=True)
-    password = fields.Str(required=True)
+    password = fields.Str(required=True, validate=JTPasswordValidator())
     name = fields.Str(required=True)
 
     # Validate server mode strings
     @validates('mode')
     def validate_mode(self, value):
+        """Validate the Server Mode string."""
         if value not in JT_SERVER_MODES:
             raise ValidationError(
                 "'mode' must be one of: {}".format(
@@ -41,31 +35,10 @@ class SetupSchema(Schema):
                 )
             )
 
-    # Validate password
-    @validates('password')
-    def validate_password(self, value):
-        # TODO: Create custom Marshmallow validator class for passwords
-        LengthValidator(
-            min=8,
-            message='Password must be at least 8 characters long',
-            exc_class=ValidationError,
-        )(value)
-        HasLowerCaseValidator(
-            message='Password must contain a lower-case letter',
-            exc_class=ValidationError,
-        )(value)
-        HasUpperCaseValidator(
-            message='Password must contain an upper-case letter',
-            exc_class=ValidationError,
-        )(value)
-        HasNumberValidator(
-            message='Password must contain a number',
-            exc_class=ValidationError,
-        )(value)
-
     # Validate against configuration-forced values
     @validates_schema
     def validate_config(self, data, **kwargs):
+        """Ensure forced values from configuration file are sent correctly."""
         err_msg = "Field '{}' must be set to '{}' (forced by configuration)"
 
         # Check Server Mode Data
@@ -87,9 +60,10 @@ class SetupSchema(Schema):
 
 @blp.route('/setup')
 class SetupView(MethodView):
-    '''Server Setup API Call'''
+    """Setup API Endpoint."""
     @blp.response(SetupSchema)
     def get(self):
+        """Return setup values forced by the Jade Tree configuration."""
         if not current_app.config.get('_JT_NEEDS_SETUP', False):
             message = "The '/setup' endpoint is not available after the " \
                 'server has been set up'
@@ -117,6 +91,7 @@ class SetupView(MethodView):
     @blp.arguments(SetupSchema)
     @blp.response(code=204)
     def post(self, json_data):
+        """Set up the Jade Tree server with the provided values."""
         if not current_app.config.get('_JT_NEEDS_SETUP', False):
             message = "The '/setup' endpoint is not available after the " \
                 'server has been set up'

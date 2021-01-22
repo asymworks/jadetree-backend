@@ -1,11 +1,8 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Authorization and Authentication Service.
 
-# Authorization and Authentication Services
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
+"""
 
 import datetime
 
@@ -39,25 +36,42 @@ JWT_SUBJECT_CONFIRM_EMAIL = 'urn:jadetree.auth.confirm'
 
 
 def decodeJwt(app, token, leeway=None, **kwargs):
-    '''
-    Decode a JSON Web Token (JWT) which is signed using the HMAC-SHA
-    {256,384,512} with the provided key. Required claims are passed with
-    keyword arguments.
+    """Decode a JSON Web Token.
 
-    :param app: Jade Tree Flask application instance
-    :type app: :class:`flask.Flask`
-    :param token: JSON Web Token string
-    :type token: str
-    :param leeway: Leeway for ``exp`` and ``nbf`` claim validation (in
-        seconds)
-    :type leeway: int or :class:`datetime.timedelta`
-    :return: Decoded token payload
-    :raises jadetree.exc.JwtInvalidTokenError: when the token is not a
-        valid JWT or has an invalid field setting
-    :raises jadetree.exc.JwtExpiredTokenError: when the token is expired
-    :raises jadetree.exc.JwtPayloadError: when the token has an invalid
-        subject or other payload claim
-    '''
+    Verifies and decodes a JSON Web Token (JWT) which is signed using HS256
+    with the key set in the `APP_TOKEN_KEY` configuration parameter. The token
+    payload is returned as a Python dictionary using standard JWT claim names.
+
+    Args:
+        app: Jade Tree Flask application instance
+        token: JSON Web Token as Base-64 encoded text
+        leeway: Leeway in seconds when validating the expiration and not-valid-
+            before payload claims
+        issuer: Optional; verify that the token issuer URN matches the provided
+            value and raise an exception if not
+        audience: Optional; verify that the token audience URN matches the
+            provied value and raise an exception if not
+        **kwargs: Additional keyword arguments are checked for existence within
+            the JWT payload and an exception is raised if they are not present
+            or do not match the argument value
+
+    Returns:
+        A dictionary with the decoded JWT payload,
+
+        {
+            'iss': 'urn:issuer',
+            'aud': 'urn:audience',
+            'sub': 'urn:subject.claim',
+            'exp': 12345678,
+        }
+
+    Raises:
+        JwtExpiredTokenError: When the token is expired
+        JwtInvalidTokenError: When the token is not a valid JWT or has an
+            invalid field setting
+        JwtPayloadError: When the token has an invalid subject or other
+            payload claim
+    """
     req_claims = dict()
     req_claims['issuer'] = kwargs.pop(
         'issuer',
@@ -124,10 +138,32 @@ def decodeJwt(app, token, leeway=None, **kwargs):
 
 
 def encodeJwt(app, **kwargs):
-    '''
-    Generate a JSON Web Token (JWT) which is signed using HS256 with the
-    provided key. Subject claims are passed with keyword arguments.
-    '''
+    """Generate a signed JSON Web Token.
+
+    Generates a JSON Web Token (JWT) which is signed using HS256 with the
+    key set in the `APP_TOKEN_KEY` configuration parameter. Subject claims
+    are passed with keyword arguments. The `subject` parameter is required,
+    but other claims are optional.
+
+    Args:
+        app: Jade Tree Flask application instance
+        subject: The subject URN of the token. Must be provided to the function
+            or an exception is raised.
+        issued: Optional; the timestamp or datetime object at which the token
+            will report it was issued. Defaults to the current time.
+        issuer: Optional; the issuer URN of the token. Defaults to the value
+            set in the `APP_TOKEN_ISSUER` configuration setting or to
+            `urn:jadetree.auth` if the configuration parameter is not set.
+        audience: Optional; the audience URN of the token. Defaults to the
+            value set in the `APP_TOKEN_AUDIENCE` configuration setting or to
+            `urn:jadetree.auth` if the configuration parameter is not set.
+
+    Returns:
+        Signed and encoded JSON Web Token
+
+    Raises:
+        JwtPayloadError: If the `subject` claim is not given
+    """
     iat_ts = kwargs.pop('issued', datetime.datetime.utcnow())
     if isinstance(iat_ts, datetime.datetime):
         iat_ts = iat_ts.replace(tzinfo=datetime.timezone.utc).timestamp()
@@ -159,18 +195,21 @@ def encodeJwt(app, **kwargs):
 
 
 def generate_user_token(user, subject, expiration=None, **kwargs):
-    '''
+    """Generate a JWT Bearer Token for a User.
+
     Generate a JWT for the user with the given subject, optional token
     expiration interval (application default is used otherwise), and
     containing the user hash along with any other provided arguments.
 
-    :param user: User for whom to generate a secure token
-    :type user: ~jadetree.models.User
-    :param subject: JWT subject claim
-    :type subject: str
-    :param expiration: token expiration interval in seconds
-    :type expiration: int or :class:`~datetime.timedelta`
-    '''
+    Args:
+        user: User object for which to generate a secure token
+        subject: JWT subject claim
+        expiration: token expiration interval in seconds
+        **kwargs: Extra arguments for encodeJwt
+
+    Returns:
+        Encoded and signed JavaScript Web Token
+    """
     if expiration is None:
         expiration = current_app.config.get('TOKEN_VALID_INTERVAL', 7200)
     if not isinstance(expiration, datetime.timedelta):
@@ -192,64 +231,65 @@ def generate_user_token(user, subject, expiration=None, **kwargs):
 
 
 def get_user(session, id):
-    '''
-    Load a User Instance by User ID
+    """Load a User Instance by User ID.
 
-    :param session: Database session
-    :type session: ~sqlalchemy.orm.session.Session
-    :param id: User Id (Primary Key)
-    :type id: int
-    :returns: User object with the given id or None
-    :rtype: :class:`User`
-    '''
+    Args:
+        session: Database session
+        id: User ID
+
+    Returns:
+        User object or None if there is no user with the given ID
+    """
     return session.query(User).filter(User.id == id).one_or_none()
 
 
 def load_user_by_email(session, email):
-    '''
-    Load a User Instance by Email Address
+    """Load a User Instance by email address.
 
-    :param session: Database session
-    :type session: ~sqlalchemy.orm.session.Session
-    :param uid_hash: User Email Address (`User.email`)
-    :type uid_hash: str
-    :returns: User object with the given email or None
-    :rtype: :class:`User`
-    '''
+    Args:
+        session: Database session
+        email: Email address
+
+    Returns:
+        User object or None if there is no user with the given email
+    """
     return session.query(User).filter(User.email == email).one_or_none()
 
 
 def load_user_by_hash(session, uid_hash):
-    '''
-    Load a User Instance by User ID Hash
+    """Load a User Instance by User ID hash.
 
-    :param session: Database session
-    :type session: ~sqlalchemy.orm.session.Session
-    :param uid_hash: User ID Hash (`User.uid_hash`)
-    :type uid_hash: str
-    :returns: User object with the given hash or None
-    :rtype: :class:`User`
-    '''
+    Args:
+        session: Database session
+        uid_hash: User ID hash
+
+    Returns:
+        User object or None if there is no user with the given ID hash
+    """
     return session.query(User).filter(User.uid_hash == uid_hash).one_or_none()
 
 
 def load_user_by_token(session, token):
-    '''
-    Load a User Instance from a JWT Bearer Token
+    """Load a User instance from a JWT Bearer Token.
 
-    :param session: Database session
-    :type session: ~sqlalchemy.orm.session.Session
-    :param token: Bearer Token from HTTP Authorization Header, stripped of the
-        "Bearer " prefix
-    :type token: str
-    :returns: User object with the given hash or None
-    :rtype: :class:`User`
-    :raises jadetree.exc.JwtInvalidTokenError: when the token is not a
-        valid JWT or has an invalid field setting
-    :raises jadetree.exc.JwtExpiredTokenError: when the token is expired
-    :raises jadetree.exc.JwtPayloadError: when the token has an invalid
-        subject or other payload claim
-    '''
+    Decodes and verifies a JWT bearer token, and loads a User instance using
+    the `uid` field in the token, which is mapped to the User ID hash.
+
+    Args:
+        session: Database session
+        token: JWT bearer token in Base 64 encoded text
+
+    Returns:
+        User object or None if the User ID hash in the token does not match
+        a user currently in the database.
+
+    Raises:
+        JwtInvalidTokenError: When the token is not a valid JWT or has an
+            invalid field setting
+        JwtExpiredTokenError: When the token has expired
+        JwtPayloadError: When the token has an invalid subject or other
+            payload claim
+    """
     payload = decodeJwt(
         current_app,
         token,
@@ -266,18 +306,22 @@ def load_user_by_token(session, token):
 
 
 def invalidate_uid_hash(session, uid_hash):
-    '''
-    Invalidate a user's ID Hash, resulting in all login sessions becoming stale
+    """Change a user's ID hash.
+
+    Changes a user's ID Hash, resulting in all login sessions becoming stale
     and forcing new password logins.  This method does not change the user's
     password.
 
-    :param session: Database session
-    :type session: ~sqlalchemy.orm.session.Session
-    :param uid_hash: User ID Hash (`User.uid_hash`)
-    :type uid_hash: str
-    :returns: User object
-    :rtype: :class:`User`
-    '''
+    Args:
+        session: Database session
+        uid_hash: User ID hash to change
+
+    Returns:
+        updated User object
+
+    Raises:
+        NoResults: If a user was not found with the given ID hash
+    """
     check_session(session)
 
     # FIXME: Add Context Manager
@@ -297,23 +341,26 @@ def invalidate_uid_hash(session, uid_hash):
 
 
 def register_user(session, email, password, name):
-    '''
+    """Register a new User.
+
     Create a User Object with an email and password. The password must be at
     least eight characters long and contain an upper case letter, a lower
     case letter, and a number. The password will be hashed prior to being
     inserted into the database.
 
-    :param session: Database session
-    :type session: ~sqlalchemy.orm.session.Session
-    :param email: User email address (must be unique)
-    :type email: str
-    :param password: User password
-    :type password: str
-    :param name: User name
-    :type name: str
-    :returns: User object
-    :rtype: :class:`User`
-    '''
+    Args:
+        session: Database session
+        email: User email address
+        password: User password
+        name: User name
+
+    Returns:
+        new User object
+
+    Raises:
+        ValueError: If the user email address is not unique, or if the password
+            does not meet requirements
+    """
     check_session(session)
 
     EmailValidator()(email)
@@ -355,17 +402,22 @@ def register_user(session, email, password, name):
 
 
 def confirm_user(session, uid_hash):
-    '''
+    """Confirm a User's Email Address.
+
     Confirm a user's registration status, and set the user to the active state
     so they can log in to Jade Tree.
 
-    :param session: Database session
-    :type session: ~sqlalchemy.orm.session.Session
-    :param uid_hash: User ID Hash (`User.uid_hash`)
-    :type uid_hash: str
-    :returns: User object
-    :rtype: :class:`User`
-    '''
+    Args:
+        session: Database session
+        uid_hash: User ID Hash (`User.uid_hash`)
+
+    Returns:
+        User object
+
+    Raises:
+        NoResults: A user was not found with the given ID hash
+        DomainError: If the user has already confirmed their email address
+    """
     check_session(session)
 
     # FIXME: Add Context Manager
@@ -391,9 +443,26 @@ def confirm_user(session, uid_hash):
 
 
 def login_user(session, email, password):
-    '''
-    Log a user in to Jade Tree and return the user and the authorization token
-    '''
+    """Log a user in to Jade Tree and return the authorization token.
+
+    Args:
+        session: Database session
+        email: User email address
+        password: User password
+
+    Returns:
+        Dictionary containing a new authorization token and the updated User
+        object. The dictionary structure is:
+
+        {
+            'token': '<bearer token>',
+            'user': User(),
+        }
+
+    Raises:
+        AuthError: A user was not found with the email address or the password
+            was incorrect
+    """
     check_session(session)
 
     u = load_user_by_email(session, email)
@@ -416,18 +485,106 @@ def login_user(session, email, password):
     return { 'token': token, 'user': u }
 
 
+def change_password(session, uid_hash, current_password, new_password, logout_sessions=True):
+    """Change the User's Password.
+
+    Change or set the user password and create a new user hash so that
+    any login tokens referencing the current user will be invalidated and
+    the sessions must log in again with the new password. Set the
+    `logout_sessions` parameter to false to keep all sessions logged in.
+
+    Args:
+        uid_hash: User ID hash to load
+        current_password: current user password, which must match the currently
+            set user password if the Server Mode is set to Public.
+        new_password: new user password, which must meet Jade Tree password
+            rules
+        logout_sessions: Optional; If logout_sessions is False, the user
+            id hash will not be updated, and all currently logged in sessions
+            can continue. The default is to update the uid_hash value so that
+            all currently logged in sessions are required to log in again
+            with the new password.
+
+    Returns:
+        Dictionary containing a new authorization token and the updated User
+        object. The dictionary structure is:
+
+        {
+            'token': '<bearer token>',
+            'user': User(),
+        }
+
+    Raises:
+        ValueError: The new password did not meet requirements
+        AuthError: The current password did not match
+        NoResults: A user was not found with the given ID hash
+    """
+    check_session(session)
+
+    u = load_user_by_hash(session, uid_hash)
+    if u is None:
+        raise NoResults('Could not find a user with the given hash')
+
+    if not u.active:
+        raise AuthError('User is not active')
+
+    if current_app.config['_JT_SERVER_MODE'] not in ('family, personal'):
+        if not u.check_password(current_password):
+            raise AuthError(
+                'The current password is not correct for the user',
+                status_code=401,
+            )
+
+        # Validate new password rules
+        LengthValidator(
+            min=8,
+            message='Password must be at least 8 characters long'
+        )(new_password)
+        HasLowerCaseValidator(
+            message='Password must contain a lower-case letter'
+        )(new_password)
+        HasUpperCaseValidator(
+            message='Password must contain an upper-case letter'
+        )(new_password)
+        HasNumberValidator(
+            message='Password must contain a number'
+        )(new_password)
+
+    # Update user password
+    u.set_password(new_password, logout_sessions)
+
+    session.add(u)
+    session.commit()
+
+    # Generate Token
+    token = generate_user_token(
+        u,
+        JWT_SUBJECT_BEARER_TOKEN,
+        # Expiration time set to 1 year
+        expiration=31536000,
+    )
+
+    # Return Token
+    return { 'token': token, 'user': u }
+
+
 def auth_user_list(session):
-    '''
+    """Return the list of Registered Users.
+
     Load the list of available server users, when the server is in Personal
     or Family mode. The tokens returned will have an issued-at date set to the
     user's creation time, and the expiration date will be 100 years after that
     time, effectively not expiring.
 
-    :param session: Database session
-    :type session: ~sqlalchemy.orm.session.Session
-    :returns: list of `User` objects
-    :rtype: list
-    '''
+    Args:
+        session: Database Session
+
+    Returns:
+        list of `User` objects
+
+    Raises:
+        DomainError: If the server is not in Personal or Family mode
+    """
     check_session(session)
 
     if current_app.config['_JT_SERVER_MODE'] not in ('family', 'personal'):

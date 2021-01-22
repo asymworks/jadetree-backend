@@ -1,9 +1,12 @@
+"""Test Initial Setup Flow."""
+
 import json
 
 import pytest  # noqa: F401
 
 
 def test_setup_api_no_defaults(app):
+    """Check that the Setup API does not return defaults when not set."""
     with app.test_client() as client:
         rv = client.get('/api/v1/setup')
         assert rv.status_code == 200
@@ -13,6 +16,7 @@ def test_setup_api_no_defaults(app):
 
 
 def test_setup_api_forced_mode_hint(app, monkeypatch):
+    """Check that the Setup API gives a mode hint when forced."""
     with app.test_client() as client:
         monkeypatch.setitem(app.config, 'SERVER_MODE', 'family')
 
@@ -25,6 +29,7 @@ def test_setup_api_forced_mode_hint(app, monkeypatch):
 
 
 def test_setup_api_forced_mode(app, monkeypatch):
+    """Check that the Setup API honors a forced mode."""
     with app.test_client() as client:
         monkeypatch.setitem(app.config, 'SERVER_MODE', 'family')
 
@@ -60,6 +65,7 @@ def test_setup_api_forced_mode(app, monkeypatch):
 
 
 def test_setup_api_invalid_mode(app):
+    """Check that the Setup API fails when the mode is invalid."""
     with app.test_client() as client:
         rv = client.get('/api/v1/version')
         assert rv.status_code == 200
@@ -99,6 +105,7 @@ def test_setup_api_invalid_mode(app):
 
 
 def test_setup_api_forced_user_hint(app, monkeypatch):
+    """Check that the Setup API gives a user hint when forced."""
     with app.test_client() as client:
         monkeypatch.setitem(app.config, 'USER_EMAIL', 'test2@jadetree.io')
         monkeypatch.setitem(app.config, 'USER_NAME', 'Test User 2')
@@ -114,6 +121,7 @@ def test_setup_api_forced_user_hint(app, monkeypatch):
 
 
 def test_setup_api_forced_user_email(app, monkeypatch):
+    """Check that the Setup API respects a forced user email address."""
     with app.test_client() as client:
         monkeypatch.setitem(app.config, 'USER_EMAIL', 'test2@jadetree.io')
         monkeypatch.setitem(app.config, 'USER_NAME', 'Test User 2')
@@ -151,6 +159,7 @@ def test_setup_api_forced_user_email(app, monkeypatch):
 
 
 def test_setup_api_forced_user_name(app, monkeypatch):
+    """Check that the Setup API respects a forced user name."""
     with app.test_client() as client:
         monkeypatch.setitem(app.config, 'USER_EMAIL', 'test2@jadetree.io')
         monkeypatch.setitem(app.config, 'USER_NAME', 'Test User 2')
@@ -188,6 +197,7 @@ def test_setup_api_forced_user_name(app, monkeypatch):
 
 
 def test_setup_api_invalid_email(app):
+    """Check that the Setup API rejects an invalid email address."""
     with app.test_client() as client:
         rv = client.get('/api/v1/version')
         assert rv.status_code == 200
@@ -227,6 +237,7 @@ def test_setup_api_invalid_email(app):
 
 
 def test_setup_api_invalid_password(app):
+    """Check that the Setup API rejects an invalid password."""
     with app.test_client() as client:
         rv = client.get('/api/v1/version')
         assert rv.status_code == 200
@@ -266,6 +277,7 @@ def test_setup_api_invalid_password(app):
 
 
 def test_setup_api_removes_endpoint(app):
+    """Check that the Setup API removes the endpoint after server setup."""
     with app.test_client() as client:
         rv = client.get('/api/v1/version')
         assert rv.status_code == 200
