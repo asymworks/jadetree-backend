@@ -14,6 +14,9 @@ from jadetree.domain.types import AccountRole, AccountType, TransactionType
 
 from .helpers import check_transaction_entries as check_entries
 
+# Always use 'app' fixture so ORM gets initialized
+pytestmark = pytest.mark.usefixtures('app')
+
 
 def test_transaction_can_add_splits_bff_nonsplit():
     # Base Currency Transaction between Foreign Currency Accounts

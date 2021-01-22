@@ -20,14 +20,14 @@ from jadetree.service import user as user_service
 DATA_DIR = '.pytest-data'
 
 
-# FIXME: needs autouse=True to setup ORM even when using fake UOW
-@pytest.fixture(scope='session', autouse=True)
-def app(request):
+@pytest.fixture(scope='session')
+def app_config(request):
     '''
-    Session-Wide Jade Tree Flask Application
+    Application Configuration for the Test Session
 
     Loads configuration from config/test.py, patches the database file with
-    a session-global temporary file, and initializes the application.
+    a session-global temporary file, and returns the new configuration data
+    to pass to create_app().
     '''
     test_dir = os.path.dirname(__file__)
     test_cfg = os.path.join(test_dir, '../config/test.py')
@@ -47,59 +47,90 @@ def app(request):
     if not os.path.isdir(db_dir):
         raise Exception('Database path "%s" does not exist' % (db_dir))
 
+    db_file = cfg_data['DB_FILE']
+    if os.path.exists(db_file):
+        os.unlink(db_file)
+
+    def teardown():
+        if os.path.exists(db_file):
+            os.unlink(db_file)
+        if os.path.exists(db_dir) and len(os.listdir(db_dir)) == 0:
+            os.rmdir(db_dir)
+
+    request.addfinalizer(teardown)
+    return cfg_data
+
+
+@pytest.fixture(scope='module')
+def app(request, app_config):
+    '''
+    Module-Wide Jade Tree Flask Application with Database
+
+    Loads configuration from config/test.py, patches the database file with
+    a session-global temporary file, and initializes the application.
+    '''
+    # Apply Database Migrations
+    _app = create_app(app_config, __name__)
+    with _app.app_context():
+        alembic_config = Config('migrations/alembic.ini')
+        alembic_config.set_main_option('script_location', 'migrations')
+        upgrade(alembic_config, 'head')
+        _db.clear_mappers()
+
     # Initialize Application and Context
-    app = create_app(cfg_data, __name__)
+    app = create_app(app_config, __name__)
     ctx = app.app_context()
     ctx.push()
 
     # Add Finalizers
     def teardown():
+        _db.drop_all()
+        _db.clear_mappers()
+        if os.path.exists(app.config['DB_FILE']):
+            os.unlink(app.config['DB_FILE'])
         ctx.pop()
 
     request.addfinalizer(teardown)
-
     return app
 
 
-@pytest.fixture(scope='session')
-def db(app, request):
-    '''Session-Wide Test Database'''
-    db_file = app.config['DB_FILE']
-    db_dir = os.path.dirname(db_file)
-    if os.path.exists(db_file):
-        os.unlink(db_file)
-    if not os.path.isdir(db_dir):
-        os.mkdir(db_dir)
-    if not os.path.isdir(db_dir):
-        raise Exception('Database path "%s" does not exist' % (db_dir))
+@pytest.fixture(scope='module')
+def app_without_database(request, app_config):
+    '''
+    Module-Wide Jade Tree Flask Application without Database
 
+    Loads configuration from config/test.py and initializes the application,
+    but does not create the database.
+    '''
+    _db.clear_mappers()
+
+    # Initialize Application and Context
+    app = create_app(app_config, __name__)
+    ctx = app.app_context()
+    ctx.push()
+
+    # Add Finalizers
     def teardown():
+        _db.clear_mappers()
         _db.drop_all()
-        os.unlink(db_file)
-        if len(os.listdir(db_dir)) == 0:
-            os.rmdir(db_dir)
-
-    _db.app = app
-
-    # Apply Migrations
-    alembic_config = Config('migrations/alembic.ini')
-    alembic_config.set_main_option('script_location', 'migrations')
-    upgrade(alembic_config, 'head')
+        ctx.pop()
 
     request.addfinalizer(teardown)
-    return _db
+    return app
 
 
 @pytest.fixture(scope='function')
-def session(db, request):
+def session(request, monkeypatch, app):
     '''Create a new Database Session for the Request'''
-    connection = db.engine.connect()
-    transaction = connection.begin()
+    with app.app_context():
+        connection = _db.engine.connect()
+        transaction = connection.begin()
 
-    options = dict(bind=connection, binds={})
-    session = db.create_scoped_session(options=options)
+        options = dict(bind=connection, binds={})
+        session = _db.create_scoped_session(options=options)
 
-    db.session = session
+        # Patch jadetree.db with the current session
+        monkeypatch.setattr(_db, 'session', session)
 
     def teardown():
         transaction.rollback()

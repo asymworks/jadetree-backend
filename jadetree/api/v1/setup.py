@@ -15,6 +15,8 @@ from jadetree.api.common import JTApiBlueprint
 from jadetree.database import db
 from jadetree.exc import Error
 from jadetree.setup import JT_SERVER_MODES, setup_jadetree
+from jadetree.service.validator import HasLowerCaseValidator, \
+    HasUpperCaseValidator, HasNumberValidator, LengthValidator
 
 #: Authentication Service Blueprint
 blp = JTApiBlueprint('setup', __name__, description='Server Setup Service')
@@ -36,6 +38,28 @@ class SetupSchema(Schema):
                     ', '.join(["'" + m + "'" for m in JT_SERVER_MODES])
                 )
             )
+
+    # Validate password
+    @validates('password')
+    def validate_password(self, value):
+        # TODO: Create custom Marshmallow validator class for passwords
+        LengthValidator(
+            min=8,
+            message='Password must be at least 8 characters long',
+            exc_class=ValidationError,
+        )(value)
+        HasLowerCaseValidator(
+            message='Password must contain a lower-case letter',
+            exc_class=ValidationError,
+        )(value)
+        HasUpperCaseValidator(
+            message='Password must contain an upper-case letter',
+            exc_class=ValidationError,
+        )(value)
+        HasNumberValidator(
+            message='Password must contain a number',
+            exc_class=ValidationError,
+        )(value)
 
     # Validate against configuration-forced values
     @validates_schema

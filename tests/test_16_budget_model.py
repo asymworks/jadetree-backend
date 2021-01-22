@@ -10,6 +10,9 @@ import pytest
 from jadetree.domain.models import Budget, Category
 from jadetree.exc import DomainError
 
+# Always use 'app' fixture so ORM gets initialized
+pytestmark = pytest.mark.usefixtures('app')
+
 
 def test_budget_can_add_category_group_simple():
     b = Budget()
