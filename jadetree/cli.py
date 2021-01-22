@@ -5,9 +5,9 @@
 #
 # =============================================================================
 
-import click
 import sys
 
+import click
 from flask.cli import AppGroup
 
 __all__ = ('init_cli', )
@@ -15,24 +15,41 @@ __all__ = ('init_cli', )
 
 def init_shell():       # pragma: no cover
     '''Initialize the Shell Context'''
-    import arrow
     import datetime
-    import sqlalchemy as sa
     from decimal import Decimal
-    from jadetree.database import db
 
-    from jadetree.domain.models import Account, Budget, BudgetEntry, \
-        Category, Payee, Transaction, TransactionEntry, TransactionLine, \
-        TransactionSplit, User
-    from jadetree.domain.types import AccountRole, AccountType, \
-        AccountSubtype, PayeeRole, TransactionType
-    from jadetree.service import account as account_service
-    from jadetree.service import auth as auth_service
-    from jadetree.service import budget as budget_service
-    from jadetree.service import export as export_service
-    from jadetree.service import ledger as ledger_service
-    from jadetree.service import payee as payee_service
-    from jadetree.service import user as user_service
+    import arrow
+    import sqlalchemy as sa
+
+    from jadetree.database import db
+    from jadetree.domain.models import (
+        Account,
+        Budget,
+        BudgetEntry,
+        Category,
+        Payee,
+        Transaction,
+        TransactionEntry,
+        TransactionLine,
+        TransactionSplit,
+        User,
+    )
+    from jadetree.domain.types import (
+        AccountRole,
+        AccountSubtype,
+        AccountType,
+        PayeeRole,
+        TransactionType,
+    )
+    from jadetree.service import (
+        account as account_service,
+        auth as auth_service,
+        budget as budget_service,
+        export as export_service,
+        ledger as ledger_service,
+        payee as payee_service,
+        user as user_service,
+    )
 
     return {
         'arrow': arrow,

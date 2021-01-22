@@ -2,23 +2,27 @@
 # Load Base DB Information following database re-creation
 #
 
-import os, sys
+import os
+import sys
+
 root_path = os.path.dirname(os.path.abspath(__file__))
 jt_path = os.path.abspath(os.path.join(root_path, '..'))
 sys.path.append(jt_path)
 
-from arrow import Arrow
 from decimal import Decimal
 
-from jadetree.factory import create_app
+from arrow import Arrow
+
 from jadetree.database import db
 from jadetree.domain.models import User
-from jadetree.domain.types import AccountType, AccountSubtype
-from jadetree.service import account as account_service
-from jadetree.service import auth as auth_service
-from jadetree.service import budget as budget_service
-from jadetree.service import user as user_service
-
+from jadetree.domain.types import AccountSubtype, AccountType
+from jadetree.factory import create_app
+from jadetree.service import (
+    account as account_service,
+    auth as auth_service,
+    budget as budget_service,
+    user as user_service,
+)
 
 YNAB4_MY_CATEGORIES = [
     {

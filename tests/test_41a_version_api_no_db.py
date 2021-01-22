@@ -6,7 +6,8 @@
 # =============================================================================
 
 import json
-import pytest   # noqa: F401
+
+import pytest  # noqa: F401
 
 
 def test_version_api_needs_db_init(app_without_database):

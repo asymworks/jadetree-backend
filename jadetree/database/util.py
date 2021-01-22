@@ -6,7 +6,6 @@
 # =============================================================================
 
 import os
-
 from urllib.parse import quote_plus
 
 from jadetree.exc import ConfigError
@@ -45,7 +44,7 @@ def make_uri(app):
     for k in ('DB_HOST', 'DB_NAME'):
         if k not in app.config:
             raise ConfigError(
-                '{} must be defined in application configuration'.format(k),
+                f'{k} must be defined in application configuration',
                 config_key=k
             )
 

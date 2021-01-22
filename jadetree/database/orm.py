@@ -7,14 +7,32 @@
 
 from sqlalchemy import and_
 
-from jadetree.domain.models import Account, Budget, BudgetEntry, Category, \
-    Payee, Transaction, TransactionEntry, TransactionLine, TransactionSplit, \
-    User
+from jadetree.domain.models import (
+    Account,
+    Budget,
+    BudgetEntry,
+    Category,
+    Payee,
+    Transaction,
+    TransactionEntry,
+    TransactionLine,
+    TransactionSplit,
+    User,
+)
 
 from .globals import db
-from .tables import users, accounts, budgets, budget_entries, categories, \
-    payees, transactions, transaction_entries, transaction_lines, \
-    transaction_splits
+from .tables import (
+    accounts,
+    budget_entries,
+    budgets,
+    categories,
+    payees,
+    transaction_entries,
+    transaction_lines,
+    transaction_splits,
+    transactions,
+    users,
+)
 
 __all__ = ('init_orm', )
 

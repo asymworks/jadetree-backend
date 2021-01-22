@@ -2,7 +2,9 @@
 # Load Base DB Information following database re-creation
 #
 
-import os, sys
+import os
+import sys
+
 root_path = os.path.dirname(os.path.abspath(__file__))
 jt_path = os.path.abspath(os.path.join(root_path, '..'))
 sys.path.append(jt_path)
@@ -10,16 +12,22 @@ sys.path.append(jt_path)
 from datetime import date
 from decimal import Decimal
 
-from jadetree.factory import create_app
 from jadetree.database import db
-from jadetree.domain.models import Account, Budget, BudgetEntry, Category, \
-    Payee, User
-from jadetree.domain.types import AccountRole, AccountType, AccountSubtype, \
-    PayeeRole, TransactionType
-from jadetree.service import user as user_service
-from jadetree.service import account as account_service
-from jadetree.service import budget as budget_service
-from jadetree.service import ledger as ledger_service
+from jadetree.domain.models import Account, Budget, BudgetEntry, Category, Payee, User
+from jadetree.domain.types import (
+    AccountRole,
+    AccountSubtype,
+    AccountType,
+    PayeeRole,
+    TransactionType,
+)
+from jadetree.factory import create_app
+from jadetree.service import (
+    account as account_service,
+    budget as budget_service,
+    ledger as ledger_service,
+    user as user_service,
+)
 
 
 def create_accounts(app, user_id, budget_id):

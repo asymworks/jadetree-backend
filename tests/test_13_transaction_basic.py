@@ -5,9 +5,9 @@
 #
 # =============================================================================
 
-import pytest   # noqa: F401
-
 from decimal import Decimal
+
+import pytest  # noqa: F401
 
 from jadetree.domain.models import Account, Transaction, User
 from jadetree.domain.types import AccountRole, AccountType, TransactionType
@@ -19,8 +19,11 @@ pytestmark = pytest.mark.usefixtures('app')
 
 
 def test_transaction_reprs():
-    from jadetree.domain.models import TransactionLine, TransactionSplit, \
-        TransactionEntry
+    from jadetree.domain.models import (
+        TransactionEntry,
+        TransactionLine,
+        TransactionSplit,
+    )
 
     # Setup User and Accounts
     u = User(currency='USD')

@@ -13,7 +13,7 @@ from jadetree.database import db
 from jadetree.domain.types import TransactionType
 from jadetree.service import payee as payee_service
 
-from .schema import PayeeSchema, PayeeDetailSchema
+from .schema import PayeeDetailSchema, PayeeSchema
 
 #: Authentication Service Blueprint
 blp = JTApiBlueprint('payee', __name__, description='Payee Service')

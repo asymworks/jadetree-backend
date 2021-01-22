@@ -5,10 +5,10 @@
 #
 # =============================================================================
 
+from functools import wraps
 import http
 
 from flask_smorest import Api, Blueprint, abort  # noqa
-from functools import wraps
 
 from jadetree.exc import Error, NoResults, Unauthorized
 
@@ -21,7 +21,7 @@ class JTApi(Api):
     information
     '''
     def init_app(self, app, *, spec_kwargs=None):
-        super(JTApi, self).init_app(app, spec_kwargs=spec_kwargs)
+        super().init_app(app, spec_kwargs=spec_kwargs)
         self.spec.components.security_scheme(
             'bearerAuth', {
                 'type': 'http',

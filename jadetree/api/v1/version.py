@@ -7,7 +7,6 @@
 
 from flask import current_app
 from flask.views import MethodView
-
 from marshmallow import Schema, fields
 
 from jadetree.api.common import JTApiBlueprint

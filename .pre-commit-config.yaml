@@ -1,0 +1,30 @@
+repos:
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.7.4
+    hooks:
+      - id: pyupgrade
+        args: [--py37-plus]
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.0.0
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=jadetree
+          - --skip="./.*,*.csv,*.json"
+          - --quiet-level=2
+        exclude_types: [csv, json]
+
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.4
+    hooks:
+      - id: flake8
+        #additional_dependencies:
+        #  - flake8-docstrings==1.5.0
+        #  - pydocstyle==5.1.1
+        files: ^(jadetree|tests)/.+\.py$
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.5.3
+    hooks:
+      - id: isort

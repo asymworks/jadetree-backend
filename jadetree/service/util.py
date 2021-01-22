@@ -8,15 +8,17 @@
 # Service Layer Utilities
 
 import inspect
-from jadetree.exc import DomainError, Unauthorized
+
 from werkzeug.local import LocalProxy
+
+from jadetree.exc import DomainError, Unauthorized
 
 
 def check_session(session):
     fn_name = inspect.currentframe().f_back.f_code.co_name
     if session is None:
         raise ValueError(
-            'Session object must be provided to {}'.format(fn_name)
+            f'Session object must be provided to {fn_name}'
         )
 
 
@@ -24,17 +26,17 @@ def check_user(user, needs_profile=False):
     fn_name = inspect.currentframe().f_back.f_code.co_name
     if user is None:
         raise ValueError(
-            'User must not be None in {}'.format(fn_name)
+            f'User must not be None in {fn_name}'
         )
     if not user.is_active:
-        raise DomainError('User is not active in {}'.format(fn_name))
+        raise DomainError(f'User is not active in {fn_name}')
     if not user.id:
         raise ValueError(
-            'User instance must have an id set in {}'.format(fn_name)
+            f'User instance must have an id set in {fn_name}'
         )
     if needs_profile and not user.profile_setup:
         raise DomainError(
-            'User profile must be set up for {}'.format(fn_name)
+            f'User profile must be set up for {fn_name}'
         )
 
 

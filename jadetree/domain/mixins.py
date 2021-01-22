@@ -5,8 +5,9 @@
 #
 # =============================================================================
 
-from arrow import Arrow, utcnow
 from dataclasses import dataclass
+
+from arrow import Arrow, utcnow
 
 
 @dataclass

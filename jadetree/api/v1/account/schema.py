@@ -8,7 +8,7 @@
 from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
 
-from jadetree.domain.types import AccountType, AccountSubtype
+from jadetree.domain.types import AccountSubtype, AccountType
 
 
 class AccountCreateSchema(Schema):

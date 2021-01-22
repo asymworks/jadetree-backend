@@ -5,10 +5,11 @@
 #
 # =============================================================================
 
-import arrow
 from collections.abc import Iterable
 from datetime import date, datetime
-from sqlalchemy.types import TypeDecorator, Date, DateTime
+
+import arrow
+from sqlalchemy.types import Date, DateTime, TypeDecorator
 
 __all__ = ('ArrowDate', 'ArrowType')
 
@@ -25,7 +26,7 @@ class ArrowDate(TypeDecorator):
     impl = Date
 
     def __init__(self, *args, **kwargs):
-        super(ArrowDate, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def process_bind_param(self, value, dialect):
         '''
@@ -88,7 +89,7 @@ class ArrowType(TypeDecorator):
     impl = DateTime
 
     def __init__(self, *args, **kwargs):
-        super(ArrowType, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def process_bind_param(self, value, dialect):
         '''

@@ -9,6 +9,7 @@
 
 from .factory import create_app
 from .socketio import socketio
+
 app = create_app()
 
 socketio.run(app)

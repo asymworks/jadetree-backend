@@ -5,9 +5,9 @@
 #
 # =============================================================================
 
-import pytest   # noqa: F401
-
 from decimal import Decimal
+
+import pytest  # noqa: F401
 
 from jadetree.domain.models import Account, Transaction, User
 from jadetree.domain.types import AccountRole, AccountType, TransactionType

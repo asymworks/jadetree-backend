@@ -5,10 +5,17 @@
 #
 # =============================================================================
 
-from sqlalchemy import and_, func, case
+from sqlalchemy import and_, case, func
 
-from jadetree.domain.models import Account, BudgetEntry, Category, \
-    Transaction, TransactionEntry, TransactionLine, TransactionSplit
+from jadetree.domain.models import (
+    Account,
+    BudgetEntry,
+    Category,
+    Transaction,
+    TransactionEntry,
+    TransactionLine,
+    TransactionSplit,
+)
 from jadetree.domain.types import AccountRole, AccountType
 
 __all__ = ('q_budget_summary', 'q_budget_tuples')

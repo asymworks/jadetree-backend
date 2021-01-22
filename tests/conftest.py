@@ -5,17 +5,16 @@
 #
 # =============================================================================
 
-import flask
 import os
-import pytest
 
 from alembic.command import upgrade
 from alembic.config import Config
+import flask
+import pytest
 
-from jadetree.factory import create_app
 from jadetree.database import db as _db
-from jadetree.service import auth as auth_service
-from jadetree.service import user as user_service
+from jadetree.factory import create_app
+from jadetree.service import auth as auth_service, user as user_service
 
 DATA_DIR = '.pytest-data'
 

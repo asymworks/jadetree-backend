@@ -11,8 +11,8 @@ from decimal import Decimal
 from jadetree.database.queries import q_budget_summary
 from jadetree.domain.models import Category
 
-from .budget import _load_budget
 from ..util import check_session, check_user
+from .budget import _load_budget
 
 __all__ = ('get_budget_data', 'get_budget_month', 'get_budget_summary')
 
@@ -25,7 +25,7 @@ def get_budget_data(session, user, budget_id):
     check_session(session)
     check_user(user)
 
-    # Check existance and authorization for budget id
+    # Check existence and authorization for budget id
     _load_budget(session, user, budget_id)
 
     # Load Categories and find Income Categories
@@ -164,7 +164,7 @@ def get_budget_data(session, user, budget_id):
 
         # Update Current Month
         assert cat not in data[cur_ym]['categories'], \
-            'Duplicate category {} in {:04}-{:02}'.format(cat, y, m)
+            f'Duplicate category {cat} in {y:04}-{m:02}'
 
         if cat not in (cat_cur_income, cat_next_income):
             # Load prior-month category information for carryover

@@ -5,7 +5,7 @@
 #
 # =============================================================================
 
-import pytest   # noqa: F401
+import pytest  # noqa: F401
 
 from jadetree.domain.types import AccountRole, AccountType
 from jadetree.exc import DomainError
@@ -34,7 +34,7 @@ def test_user_profile_setup_sets_up_profile(session, user_without_profile):
 
 
 def test_user_profile_setup_sets_up_accounts(session, user_with_profile):
-    accts = dict([(a.name, a) for a in user_with_profile.accounts])
+    accts = {a.name: a for a in user_with_profile.accounts}
 
     assert len(accts) == 4
 

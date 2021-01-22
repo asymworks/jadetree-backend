@@ -13,9 +13,9 @@ from sqlalchemy.exc import IntegrityError
 from jadetree.domain.models import BudgetEntry, Category
 from jadetree.exc import DomainError, NoResults, Unauthorized
 
+from ..util import check_session, check_user
 from .budget import _load_budget
 from .category import _load_category
-from ..util import check_session, check_user
 
 __all__ = (
     '_load_entry', '_load_entry_ymc', 'create_entry', 'delete_entry',
@@ -30,11 +30,11 @@ def _load_entry(session, user, budget_id, entry_id):
     '''
     e = session.query(BudgetEntry).get(entry_id)
     if e is None:
-        raise NoResults('No budget entry found for id {}'.format(entry_id))
+        raise NoResults(f'No budget entry found for id {entry_id}')
 
     if e.budget.id != budget_id:
         raise NoResults(
-            'Budget entry does not belong to budget {}'.format(budget_id)
+            f'Budget entry does not belong to budget {budget_id}'
         )
 
     if e.budget.user != user:
@@ -86,7 +86,7 @@ def create_entry(session, user, budget_id, entry_data):
     check_session(session)
     check_user(user, needs_profile=True)
 
-    # Check existance and authorization for budget id
+    # Check existence and authorization for budget id
     b = _load_budget(session, user, budget_id)
 
     # Ensure required keys are present
@@ -105,7 +105,7 @@ def create_entry(session, user, budget_id, entry_data):
         raise DomainError('Category {} does not exist', status_code=422)
     if c.budget != b:
         raise DomainError(
-            'Category {} does not belong to budget {}'.format(c.id, budget_id),
+            f'Category {c.id} does not belong to budget {budget_id}',
             status_code=422
         )
     if c.parent is None:
@@ -139,7 +139,7 @@ def update_entry(session, user, budget_id, entry_id, **kwargs):
     check_session(session)
     check_user(user, needs_profile=True)
 
-    # Check existance and authorization for budget entry id
+    # Check existence and authorization for budget entry id
     e = _load_entry(session, user, budget_id, entry_id)
 
     # Update Month/Year
@@ -186,7 +186,7 @@ def delete_entry(session, user, budget_id, entry_id):
     check_session(session)
     check_user(user, needs_profile=True)
 
-    # Check existance and authorization for budget entry id
+    # Check existence and authorization for budget entry id
     e = _load_entry(session, user, budget_id, entry_id)
 
     # Delete Entry

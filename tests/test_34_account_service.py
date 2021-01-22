@@ -5,16 +5,14 @@
 #
 # =============================================================================
 
-import pytest   # noqa: F401
-
-from arrow import utcnow
 from decimal import Decimal
 
+from arrow import utcnow
+import pytest  # noqa: F401
+
 from jadetree.domain.models import Account, Budget, Transaction
-from jadetree.domain.types import AccountRole, AccountType, PayeeRole, \
-    TransactionType
-from jadetree.service import account as account_service
-from jadetree.service import budget as budget_service
+from jadetree.domain.types import AccountRole, AccountType, PayeeRole, TransactionType
+from jadetree.service import account as account_service, budget as budget_service
 
 from .helpers import check_transaction_entries as check_entries
 

@@ -8,8 +8,14 @@
 from sqlalchemy import and_, case, func
 from sqlalchemy.orm import aliased
 
-from jadetree.domain.models import Account, Category, Transaction, \
-    TransactionEntry, TransactionLine, TransactionSplit
+from jadetree.domain.models import (
+    Account,
+    Category,
+    Transaction,
+    TransactionEntry,
+    TransactionLine,
+    TransactionSplit,
+)
 from jadetree.domain.types import AccountRole
 
 __all__ = (

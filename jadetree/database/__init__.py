@@ -7,8 +7,6 @@
 
 import re
 
-from alembic.command import upgrade
-from alembic.config import Config
 from alembic.script import ScriptDirectory
 from flask import current_app
 

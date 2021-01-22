@@ -5,8 +5,13 @@
 #
 # =============================================================================
 
-from jadetree.domain.types import AccountRole, AccountType, AccountSubtype, \
-    PayeeRole, TransactionType
+from jadetree.domain.types import (
+    AccountRole,
+    AccountSubtype,
+    AccountType,
+    PayeeRole,
+    TransactionType,
+)
 
 from .globals import db
 from .types import AmountType, ArrowType

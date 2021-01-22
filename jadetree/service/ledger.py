@@ -7,13 +7,13 @@
 
 # Ledger Services
 
-from babel.numbers import format_currency
 from datetime import date
 from decimal import Decimal
 
+from babel.numbers import format_currency
+
 from jadetree.database.queries import q_txn_account_lines
-from jadetree.domain.models import Account, Category, Transaction, \
-    TransactionLine
+from jadetree.domain.models import Account, Category, Transaction, TransactionLine
 from jadetree.domain.types import AccountRole, AccountType, TransactionType
 from jadetree.exc import DomainError, NoResults, Unauthorized
 
@@ -36,7 +36,7 @@ def _load_transaction(session, user, transaction_id):
 
     t = session.query(Transaction).get(transaction_id)
     if t is None:
-        raise NoResults('No transaction found for id {}'.format(transaction_id))
+        raise NoResults(f'No transaction found for id {transaction_id}')
 
     if t.user != user:
         raise Unauthorized(
@@ -265,7 +265,7 @@ def create_transaction(
     # Load and Verify the Source Account
     a = session.query(Account).get(account_id)
     if a is None:
-        raise NoResults('No account found for id {}'.format(account_id))
+        raise NoResults(f'No account found for id {account_id}')
 
     if a.user != user:
         raise Unauthorized(
@@ -325,8 +325,8 @@ def create_transaction(
 def _load_transaction_lines(session, q):
     '''
     '''
-    all_cols = set([c.key for c in q.selectable.c])
-    split_keys = set([c for c in all_cols if c.startswith('split_')])
+    all_cols = {c.key for c in q.selectable.c}
+    split_keys = {c for c in all_cols if c.startswith('split_')}
     txn_keys = all_cols - set(split_keys)
 
     # Group Results by TransactionLine
@@ -335,8 +335,8 @@ def _load_transaction_lines(session, q):
     for rec in session.execute(q):
         row = dict(rec)
         line_id = row['line_id']
-        line_item = dict([(k, row[k]) for k in txn_keys])
-        split_item = dict([(k[6:], row[k]) for k in split_keys])
+        line_item = {k: row[k] for k in txn_keys}
+        split_item = {k[6:]: row[k] for k in split_keys}
 
         if line_id in grouped:
             grouped[line_id]['splits'].append(split_item)
@@ -376,7 +376,7 @@ def load_account_lines(session, user, account_id, order_by=None, reverse=False):
 
     a = session.query(Account).get(account_id)
     if a is None:
-        raise NoResults('No account found for id {}'.format(account_id))
+        raise NoResults(f'No account found for id {account_id}')
 
     if a.user != user:
         raise Unauthorized(
@@ -414,7 +414,7 @@ def load_reconcilable_lines(session, user, account_id, order_by=None, reverse=Fa
 
     a = session.query(Account).get(account_id)
     if a is None:
-        raise NoResults('No account found for id {}'.format(account_id))
+        raise NoResults(f'No account found for id {account_id}')
 
     if a.user != user:
         raise Unauthorized(
@@ -441,7 +441,7 @@ def update_transaction(session, user, transaction_id, **kwargs):
 
     txn = session.query(Transaction).get(transaction_id)
     if txn is None:
-        raise NoResults('No transaction found for id {}'.format(transaction_id))
+        raise NoResults(f'No transaction found for id {transaction_id}')
 
     check_access(user, txn)
 
@@ -605,7 +605,7 @@ def reconcile_account(
 
     a = session.query(Account).get(account_id)
     if a is None:
-        raise NoResults('No account found for id {}'.format(account_id))
+        raise NoResults(f'No account found for id {account_id}')
 
     if a.user != user:
         raise Unauthorized(

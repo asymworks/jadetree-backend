@@ -5,12 +5,11 @@
 #
 # =============================================================================
 
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy as sa
 from sqlalchemy.ext import compiler
 from sqlalchemy.schema import DDLElement
-
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 
 
 class CreateView(DDLElement):

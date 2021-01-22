@@ -5,20 +5,31 @@
 #
 # =============================================================================
 
-import pytest   # noqa: F401
-
 from datetime import date
 from decimal import Decimal
-from sqlalchemy import func, and_
 
-from jadetree.domain.models import Account, Category, TransactionEntry, \
-    TransactionLine, TransactionSplit
-from jadetree.domain.types import AccountType, AccountSubtype, PayeeRole, \
-    TransactionType
-from jadetree.service import account as account_service
-from jadetree.service import budget as budget_service
-from jadetree.service import ledger as ledger_service
-from jadetree.service import payee as payee_service
+import pytest  # noqa: F401
+from sqlalchemy import and_, func
+
+from jadetree.domain.models import (
+    Account,
+    Category,
+    TransactionEntry,
+    TransactionLine,
+    TransactionSplit,
+)
+from jadetree.domain.types import (
+    AccountSubtype,
+    AccountType,
+    PayeeRole,
+    TransactionType,
+)
+from jadetree.service import (
+    account as account_service,
+    budget as budget_service,
+    ledger as ledger_service,
+    payee as payee_service,
+)
 
 from .helpers import check_transaction_entries as check_entries
 

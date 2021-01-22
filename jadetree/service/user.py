@@ -11,6 +11,7 @@ import re
 
 from arrow import utcnow
 from babel import Locale
+
 from jadetree.domain.data import CURRENCY_LIST
 from jadetree.domain.models import Account, Payee
 from jadetree.domain.types import AccountRole, AccountType, PayeeRole

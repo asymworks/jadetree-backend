@@ -19,8 +19,8 @@ Application default configuration values are found in the
 '''
 
 import configparser
-import pathlib
 import os
+import pathlib
 
 from flask import Flask
 

@@ -5,10 +5,11 @@
 #
 # =============================================================================
 
-from arrow import Arrow, utcnow
-from babel.numbers import format_currency, format_decimal
 from dataclasses import dataclass
 from hashlib import blake2s
+
+from arrow import Arrow, utcnow
+from babel.numbers import format_currency, format_decimal
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..mixins import TimestampMixin
@@ -206,7 +207,7 @@ class User(TimestampMixin):
     # Domain Logic
     def _generate_user_hash(self):
         '''Create a new User Hash for the user_id field'''
-        ts = '{}'.format(utcnow()).encode('ascii')
+        ts = f'{utcnow()}'.encode('ascii')
         h = blake2s(digest_size=16)
         h.update(self.email.encode('ascii'))
         h.update(ts)

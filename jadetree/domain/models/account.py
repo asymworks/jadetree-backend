@@ -5,12 +5,12 @@
 #
 # =============================================================================
 
-from datetime import date
 from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 
 from ..mixins import NotesMixin, TimestampMixin
-from ..types import AccountRole, AccountType, AccountSubtype
+from ..types import AccountRole, AccountSubtype, AccountType
 
 __all__ = ('Account', )
 
@@ -190,4 +190,4 @@ class Account(NotesMixin, TimestampMixin):
 
     # Helpers
     def __repr__(self):
-        return '<{} Account "{}">'.format(self.type.name, self.name)
+        return f'<{self.type.name} Account "{self.name}">'

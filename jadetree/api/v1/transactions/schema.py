@@ -5,8 +5,14 @@
 #
 # =============================================================================
 
-from marshmallow import Schema, fields, pre_dump, validates, validates_schema, \
-    ValidationError
+from marshmallow import (
+    Schema,
+    ValidationError,
+    fields,
+    pre_dump,
+    validates,
+    validates_schema,
+)
 from marshmallow_enum import EnumField
 
 from jadetree.domain.types import AccountRole, AccountType, TransactionType

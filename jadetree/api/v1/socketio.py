@@ -16,14 +16,14 @@ from jadetree.socketio import socketio
 def handle_api_connection():
     try:
         token = request.args.get('access_token', None)
-        if token is None or token == '':
+        if not token:
             current_app.logger.warning('WebSockets connection request with no token')
             return False
 
         # Load the User from the Token
         user = auth_service.load_user_by_token(db.session, token)
         if user is None:
-            current_app.logger.warning('WebSockets connection request for non-existant user')
+            current_app.logger.warning('WebSockets connection request for non-existent user')
             return False
 
         # Join the User's Room

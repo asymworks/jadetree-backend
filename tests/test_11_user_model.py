@@ -5,8 +5,9 @@
 #
 # =============================================================================
 
-import pytest
 import re
+
+import pytest
 
 from jadetree.domain.models import User
 

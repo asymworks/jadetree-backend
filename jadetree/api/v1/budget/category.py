@@ -13,7 +13,7 @@ from jadetree.database import db
 from jadetree.service import budget as budget_service
 
 from .base import blp
-from .schema import CategorySchema, CategoryGroupSchema
+from .schema import CategoryGroupSchema, CategorySchema
 
 
 @blp.route('/budgets/<int:budget_id>/categories')

@@ -5,13 +5,13 @@
 #
 # =============================================================================
 
-import pytest   # noqa: F401
-
-from arrow import utcnow
 import datetime
 
+from arrow import utcnow
+import pytest  # noqa: F401
+
 from jadetree.domain.models import User
-from jadetree.exc import DomainError, NoResults, JwtPayloadError
+from jadetree.exc import DomainError, JwtPayloadError, NoResults
 from jadetree.service import auth as auth_service
 from jadetree.service.auth import JWT_SUBJECT_BEARER_TOKEN
 

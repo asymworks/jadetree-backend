@@ -16,8 +16,12 @@ from jadetree.database import db
 from jadetree.exc import NoResults
 from jadetree.service import budget as budget_service
 
-from .schema import BudgetSchema, BudgetDataSchema, BudgetQueryArgsSchema, \
-    BudgetUpdateSchema
+from .schema import (
+    BudgetDataSchema,
+    BudgetQueryArgsSchema,
+    BudgetSchema,
+    BudgetUpdateSchema,
+)
 
 #: Authentication Service Blueprint
 blp = JTApiBlueprint('budget', __name__, description='Budget Service')

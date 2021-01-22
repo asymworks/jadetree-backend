@@ -5,12 +5,12 @@
 #
 # =============================================================================
 
-import jwt
 import datetime
+
+import jwt
 import pytest
 
-from jadetree.exc import JwtInvalidTokenError, JwtExpiredTokenError, \
-    JwtPayloadError
+from jadetree.exc import JwtExpiredTokenError, JwtInvalidTokenError, JwtPayloadError
 from jadetree.service import auth as auth_service
 
 RS256_PRIV_KEY = b'''-----BEGIN RSA PRIVATE KEY-----

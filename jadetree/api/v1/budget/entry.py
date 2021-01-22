@@ -14,8 +14,7 @@ from jadetree.exc import NoResults
 from jadetree.service import budget as budget_service
 
 from .base import blp
-from .schema import BudgetEntrySchema, BudgetEntryUpdateSchema, \
-    BudgetQueryArgsSchema
+from .schema import BudgetEntrySchema, BudgetEntryUpdateSchema, BudgetQueryArgsSchema
 
 
 @blp.route('/budgets/<int:budget_id>/entries')

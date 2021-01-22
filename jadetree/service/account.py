@@ -7,16 +7,14 @@
 
 # Account Services
 
-import arrow
-
 from datetime import date
 from decimal import Decimal
 
-from jadetree.database.queries import q_account_list, q_account_balances
-from jadetree.domain.models import Account, Budget, Category, Payee, \
-    Transaction
-from jadetree.domain.types import AccountRole, AccountType, PayeeRole, \
-    TransactionType
+import arrow
+
+from jadetree.database.queries import q_account_balances, q_account_list
+from jadetree.domain.models import Account, Budget, Category, Payee, Transaction
+from jadetree.domain.types import AccountRole, AccountType, PayeeRole, TransactionType
 from jadetree.exc import NoResults, Unauthorized
 
 from .user import get_initial_payee
@@ -49,7 +47,7 @@ def create_user_account(
     Initial Capital system account.  For on-budget accounts which represent
     debt (Asset accounts with negative balance or Liability accounts with
     positive balance), a new budget expense account will be created for the
-    opposing account for the opening balance. This expense account repesents
+    opposing account for the opening balance. This expense account represents
     debt that must be "paid off" by moving income into the expense account.
     Otherwise, the opening balance is put into the budget's Income account.
 
@@ -102,7 +100,7 @@ def create_user_account(
         b = session.query(Budget).get(budget_id)
         if b is None:
             raise NoResults(
-                'No budget found for id {}'.format(budget_id)
+                f'No budget found for id {budget_id}'
             )
 
     # FIXME: Add Context Manager
@@ -273,7 +271,7 @@ def _load_account(session, user, account_id):
 
     a = session.query(Account).get(account_id)
     if a is None:
-        raise NoResults('No account found for id {}'.format(account_id))
+        raise NoResults(f'No account found for id {account_id}')
 
     if a.user != user:
         raise Unauthorized(

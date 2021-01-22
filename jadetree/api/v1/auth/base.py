@@ -12,7 +12,7 @@ from jadetree.api.common import JTApiBlueprint, auth
 from jadetree.database import db
 from jadetree.service import auth as auth_service
 
-from .schema import LoginSchema, AuthTokenSchema, AuthUserSchema
+from .schema import AuthTokenSchema, AuthUserSchema, LoginSchema
 
 #: Authentication Service Blueprint
 blp = JTApiBlueprint('auth', __name__, description='Authentication Service')
@@ -25,7 +25,7 @@ class LoginView(MethodView):
     def get(self):
         '''
         For Personal and Family server modes, return a list of user emails and
-        names which will be accepted by the authorization endpoint withoug a
+        names which will be accepted by the authorization endpoint without a
         password.
         '''
         if current_app.config['_JT_SERVER_MODE'] not in ('family', 'personal'):

@@ -8,18 +8,29 @@
 # Authorization and Authentication Services
 
 import datetime
-import jwt
 
 from arrow import utcnow
 from flask import current_app
+import jwt
 
 from jadetree.domain.models import User
-from jadetree.exc import AuthError, DomainError, JwtInvalidTokenError, \
-    JwtExpiredTokenError, JwtPayloadError, NoResults
+from jadetree.exc import (
+    AuthError,
+    DomainError,
+    JwtExpiredTokenError,
+    JwtInvalidTokenError,
+    JwtPayloadError,
+    NoResults,
+)
 
 from .util import check_session
-from .validator import EmailValidator, HasLowerCaseValidator, \
-    HasUpperCaseValidator, HasNumberValidator, LengthValidator
+from .validator import (
+    EmailValidator,
+    HasLowerCaseValidator,
+    HasNumberValidator,
+    HasUpperCaseValidator,
+    LengthValidator,
+)
 
 # JWT Subjects for Jade Tree
 JWT_SUBJECT_BEARER_TOKEN = 'urn:jadetree.auth.bearer'
@@ -105,7 +116,7 @@ def decodeJwt(app, token, leeway=None, **kwargs):
     for k, v in kwargs.items():
         if k not in payload or payload[k] != v:
             raise JwtPayloadError(
-                'Missing or invalid key {} in payload'.format(k),
+                f'Missing or invalid key {k} in payload',
                 payload_key=k
             )
 
@@ -325,7 +336,7 @@ def register_user(session, email, password, name):
 
         if session.query(User).filter(User.email == email).first() is not None:
             raise ValueError(
-                'A user with email address {} already exists'.format(email)
+                f'A user with email address {email} already exists'
             )
 
     # FIXME: Add Context Manager
@@ -366,7 +377,7 @@ def confirm_user(session, uid_hash):
 
     if u.confirmed:
         raise DomainError(
-            'User already confirmed {}'.format(u.confirmed_at.humanize())
+            f'User already confirmed {u.confirmed_at.humanize()}'
         )
 
     u.active = True

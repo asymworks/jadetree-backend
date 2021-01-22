@@ -12,11 +12,10 @@ from .auth import blp as auth_api
 from .budget import blp as budget_api
 from .payee import blp as payee_api
 from .setup import blp as setup_api
+from .socketio import init_api_socketio
 from .transactions import blp as transaction_api
 from .user import blp as user_api
 from .version import blp as version_api
-
-from .socketio import init_api_socketio
 
 __all__ = ('init_api', )
 

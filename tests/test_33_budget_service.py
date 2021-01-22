@@ -5,7 +5,7 @@
 #
 # =============================================================================
 
-import pytest   # noqa: F401
+import pytest  # noqa: F401
 
 from jadetree.domain.models import Account, Budget, Category
 from jadetree.domain.types import AccountRole, AccountType

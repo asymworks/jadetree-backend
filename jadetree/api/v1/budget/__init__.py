@@ -5,7 +5,7 @@
 #
 # =============================================================================
 
-from . import base, category, entry      # noqa: F401
+from . import base, category, entry  # noqa: F401
 from .base import blp
 
 __all__ = ('blp', )

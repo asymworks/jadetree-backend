@@ -5,13 +5,19 @@
 #
 # =============================================================================
 
-import pytest
 import re
 
+import pytest
+
 from jadetree.exc import ConfigError
-from jadetree.service.validator import RegexValidator, EmailValidator, \
-    HasLowerCaseValidator, HasUpperCaseValidator, HasNumberValidator, \
-    LengthValidator
+from jadetree.service.validator import (
+    EmailValidator,
+    HasLowerCaseValidator,
+    HasNumberValidator,
+    HasUpperCaseValidator,
+    LengthValidator,
+    RegexValidator,
+)
 
 
 def test_regex_validator():

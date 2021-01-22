@@ -11,14 +11,14 @@ from decimal import Decimal
 
 from jadetree.exc import DomainError
 
-from .account import Account
 from ..types import AccountRole, AccountType, TransactionType
+from .account import Account
 
 __all__ = ('Transaction', 'TransactionLine', 'TransactionEntry', 'TransactionSplit')
 
 
 @dataclass
-class TransactionEntry(object):
+class TransactionEntry:
     '''
     Holds the amount of currency associated with a `TransactionSplit` on a
     particular `Account`. For all account types other than Trading accounts,
@@ -49,7 +49,7 @@ class TransactionEntry(object):
 
 
 @dataclass
-class TransactionLine(object):
+class TransactionLine:
     '''
     Holds all the `TransactionEntry` items associated with a single account
     ledger line for a `Transaction` (i.e. the total amount of a transaction
@@ -110,7 +110,7 @@ class TransactionLine(object):
 
 
 @dataclass
-class TransactionSplit(object):
+class TransactionSplit:
     '''
     Connects `TransactionEntry` items for a single categorized amount of funds
     moving between two accounts. For transactions between two accounts with the
@@ -195,7 +195,7 @@ class TransactionSplit(object):
 
 
 @dataclass
-class Transaction(object):
+class Transaction:
     '''
     The `Transaction` object represents a single transfer of funds into or out
     of an `Account` to a single `Payee`, which can be in the same currency as
@@ -610,4 +610,4 @@ class Transaction(object):
         return len(self.splits) > 1
 
     def __repr__(self):
-        return '<Transaction {} {}>'.format(self.amount, self.currency)
+        return f'<Transaction {self.amount} {self.currency}>'

@@ -13,8 +13,11 @@ from jadetree.database import db
 from jadetree.domain.types import AccountRole
 from jadetree.service import ledger as ledger_service
 
-from .schema import TransactionSummarySchema, TransactionSchema, \
-    TransactionClearanceSchema
+from .schema import (
+    TransactionClearanceSchema,
+    TransactionSchema,
+    TransactionSummarySchema,
+)
 
 #: Authentication Service Blueprint
 blp = JTApiBlueprint('transactions', __name__, description='Transaction Service')

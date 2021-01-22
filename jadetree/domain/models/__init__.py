@@ -8,8 +8,12 @@
 from .account import Account
 from .budget import Budget, BudgetEntry, Category
 from .payee import Payee
-from .transaction import Transaction, TransactionEntry, TransactionLine, \
-    TransactionSplit
+from .transaction import (
+    Transaction,
+    TransactionEntry,
+    TransactionLine,
+    TransactionSplit,
+)
 from .user import User
 
 __all__ = (

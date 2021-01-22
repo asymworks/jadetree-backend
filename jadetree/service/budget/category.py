@@ -12,8 +12,8 @@ from jadetree.database.tables import categories as categories_table
 from jadetree.domain.models import Category
 from jadetree.exc import DomainError, NoResults, Unauthorized
 
-from .budget import _load_budget
 from ..util import check_session, check_user
+from .budget import _load_budget
 
 __all__ = (
     '_load_category',
@@ -34,11 +34,11 @@ def _load_category(session, user, budget_id, category_id):
 
     c = session.query(Category).get(category_id)
     if c is None:
-        raise NoResults('No category found for id {}'.format(category_id))
+        raise NoResults(f'No category found for id {category_id}')
 
     if c.budget.id != budget_id:
         raise NoResults(
-            'Category does not belong to budget {}'.format(budget_id)
+            f'Category does not belong to budget {budget_id}'
         )
 
     if c.budget.user != user:
@@ -95,11 +95,11 @@ def create_budget_category(
     # Load Category Group
     cg = session.query(Category).get(parent_id)
     if cg is None:
-        raise NoResults('No category group found with id {}'.format(parent_id))
+        raise NoResults(f'No category group found with id {parent_id}')
 
     if cg.parent is not None:
         raise DomainError(
-            'Category {} is not a Category Group'.format(parent_id)
+            f'Category {parent_id} is not a Category Group'
         )
 
     # Add Category Group
@@ -269,13 +269,13 @@ def move_category(session, user, budget_id, category_id, new_position, new_paren
     check_session(session)
     check_user(user, needs_profile=True)
 
-    # Check existance and authorization for budget id
+    # Check existence and authorization for budget id
     b = _load_budget(session, user, budget_id)
 
     # Load Category
     cat = session.query(Category).get(category_id)
     if cat is None:
-        raise NoResults('No category found with id {}'.format(category_id))
+        raise NoResults(f'No category found with id {category_id}')
 
     cur_position = cat.display_order or 0
     cur_parent = cat.parent_id

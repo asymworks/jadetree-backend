@@ -6,7 +6,8 @@
 # =============================================================================
 
 from decimal import Decimal, getcontext
-from sqlalchemy.types import TypeDecorator, Integer, Numeric
+
+from sqlalchemy.types import Integer, Numeric, TypeDecorator
 
 __all__ = ('AmountType', )
 
@@ -31,7 +32,7 @@ class AmountType(TypeDecorator):
     impl = Numeric
 
     def __init__(self, precision=13, scale=4):
-        super(AmountType, self).__init__()
+        super().__init__()
         self._precision = precision
         self._scale = scale
         self._multiplier = 10**scale

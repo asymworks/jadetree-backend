@@ -6,6 +6,7 @@
 # =============================================================================
 
 from marshmallow import Schema, fields
+
 from ..user.schema import UserSchema
 
 

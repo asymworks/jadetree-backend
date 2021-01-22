@@ -7,8 +7,8 @@ Create Date: 2020-11-23 07:56:52.812934
 """
 from alembic import op
 import sqlalchemy as sa
-import jadetree.database.types as jt
 
+import jadetree.database.types as jt
 
 # revision identifiers, used by Alembic.
 revision = '928216790a90'

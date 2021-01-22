@@ -7,16 +7,18 @@
 
 from flask import current_app
 from flask.views import MethodView
-
-from marshmallow import Schema, ValidationError, fields, validates, \
-    validates_schema
+from marshmallow import Schema, ValidationError, fields, validates, validates_schema
 
 from jadetree.api.common import JTApiBlueprint
 from jadetree.database import db
 from jadetree.exc import Error
+from jadetree.service.validator import (
+    HasLowerCaseValidator,
+    HasNumberValidator,
+    HasUpperCaseValidator,
+    LengthValidator,
+)
 from jadetree.setup import JT_SERVER_MODES, setup_jadetree
-from jadetree.service.validator import HasLowerCaseValidator, \
-    HasUpperCaseValidator, HasNumberValidator, LengthValidator
 
 #: Authentication Service Blueprint
 blp = JTApiBlueprint('setup', __name__, description='Server Setup Service')
@@ -76,7 +78,7 @@ class SetupSchema(Schema):
         user_keys = ('email', 'name')
         for key in user_keys:
             config_val = current_app.config.get(
-                'USER_{}'.format(key.upper()),
+                f'USER_{key.upper()}',
                 None
             )
             if config_val is not None and data[key] != config_val:
@@ -104,7 +106,7 @@ class SetupView(MethodView):
         user_keys = ('email', 'name')
         for key in user_keys:
             config_val = current_app.config.get(
-                'USER_{}'.format(key.upper()),
+                f'USER_{key.upper()}',
                 None
             )
             if config_val is not None:

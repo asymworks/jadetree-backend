@@ -156,6 +156,6 @@ class TransactionType(enum.Enum):
 
     '''
     Inflow = 'inflow'           #: Deposit into a Personal Account
-    Outflow = 'outflow'         #: Withdrawl from a Personal Account
+    Outflow = 'outflow'         #: Withdrawal from a Personal Account
     Transfer = 'transfer'       #: Transfer between two Personal Accounts
     System = 'system'           #: System Transaction
