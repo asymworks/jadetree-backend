@@ -188,3 +188,21 @@ def test_change_password_bad_new_password(app, session):
         assert 'new_password' in data['errors']['json']
         assert len(data['errors']['json']['new_password']) == 1
         assert 'Password' in data['errors']['json']['new_password'][0]
+
+
+def test_register_user_unavailable(app):
+    """Ensure the /auth/register endpoint is unavailable in Personal mode."""
+    with app.test_client() as client:
+        # Register a new User
+        user_data = {
+            'email': 'test2@jadetree.io',
+            'password': 'aSecu43Pa55w0rd',
+            'name': 'Second User',
+        }
+        rv = client.post(
+            '/api/v1/auth/register',
+            content_type='application/json',
+            data=json.dumps(user_data),
+        )
+
+        assert rv.status_code == 410

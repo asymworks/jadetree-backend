@@ -353,6 +353,9 @@ def register_user(session, email, password, name):
         email: User email address
         password: User password
         name: User name
+        confirm: Optional; Set to True to automatically confirm the user's
+            registration and email address. Should only be used in cases like
+            initial server setup.
 
     Returns:
         new User object
@@ -360,8 +363,17 @@ def register_user(session, email, password, name):
     Raises:
         ValueError: If the user email address is not unique, or if the password
             does not meet requirements
+        DomainError: If the server mode is set to Personal, no new users can be
+            registered
     """
     check_session(session)
+
+    if current_app.config.get('_JT_SERVER_MODE', None) == 'personal':
+        # Only one User can be registered in personal mode
+        if session.query(User).count() != 0:
+            raise DomainError(
+                'Cannot register users when the server mode is set to Personal'
+            )
 
     EmailValidator()(email)
 
@@ -394,6 +406,12 @@ def register_user(session, email, password, name):
     u.active = False
     u.confirmed = False
     u.created_at = utcnow()
+
+    if current_app.config.get('_JT_SERVER_MODE', None) in skip_pw_modes:
+        # Automatically confirm the user
+        u.active = True
+        u.confirmed = True
+        u.confirmed_at = utcnow()
 
     session.add(u)
     session.commit()

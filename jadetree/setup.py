@@ -1,11 +1,8 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Server Setup Services.
 
-# Jade Tree Setup Services
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
+"""
 
 import datetime
 
@@ -26,25 +23,19 @@ JT_SERVER_MODES = ('personal', 'family', 'public')
 
 
 def jt_config_has(key):
-    '''Check if a key exists in the Jade Tree database configuration table'''
+    """Check if a Jade Tree Configuration Value exists in the Database."""
     q = db.select([jadetree_config.c.key]).where(jadetree_config.c.key == key)
     return db.engine.execute(q).scalar() is not None
 
 
 def jt_config_get(key, default=None):
-    '''
-    Return the configuration value corresponding to the configuration key from
-    the Jade Tree database configuration table
-    '''
+    """Get a Jade Tree Configuration Value from the Database."""
     q = db.select([jadetree_config.c.value]).where(jadetree_config.c.key == key)
     return db.engine.execute(q).scalar() or default
 
 
 def jt_config_set(key, value):
-    '''
-    Update the configuration value corresponding to the configuration key in
-    the Jade Tree database configuration table
-    '''
+    """Set a Jade Tree Configuration Value in the Database."""
     q = jadetree_config.insert().values(key=key, value=value)
     if jt_config_has(key):
         q = jadetree_config.update().values(
@@ -57,8 +48,11 @@ def jt_config_set(key, value):
 
 
 def setup_jadetree(session, **kwargs):
-    '''
-    '''
+    """Set up the Jade Tree Server.
+
+    Runs initial setup tasks for Jade Tree and populates the Jade Tree settings
+    database table.
+    """
     check_session(session)
 
     if current_app.config.get('_JT_DB_NEEDS_UPGRADE'):
@@ -94,56 +88,43 @@ def setup_jadetree(session, **kwargs):
             'public server'
         )
 
-    try:
-        # Set the Server Mode so that register_user knows not to require a
-        # password for 'personal' or 'family' modes
-        current_app.config['_JT_SERVER_MODE'] = server_mode
+    # Set the Server Mode so that register_user knows not to require a
+    # password for 'personal' or 'family' modes
+    current_app.config['_JT_SERVER_MODE'] = server_mode
 
-        # Register and Confirm the User
-        session.begin_nested()
-        u = auth_service.register_user(
-            session,
-            user_email,
-            user_password,
-            user_name,
-        )
+    # Register and Confirm the User
+    u = auth_service.register_user(
+        session,
+        user_email,
+        user_password,
+        user_name,
+    )
 
-        session.begin_nested()
+    if not u.active:
         u = auth_service.confirm_user(session, u.uid_hash)
 
-        # Store the Setup Date and Server Mode
-        with session.begin_nested():
-            jt_config_set('setup', datetime.date.today().isoformat())
-            jt_config_set('server_mode', server_mode)
+    # Store the Setup Date and Server Mode
+    jt_config_set('setup', datetime.date.today().isoformat())
+    jt_config_set('server_mode', server_mode)
 
-        # Commit Changes
-        session.commit()
-
-        # Update Configuration
-        current_app.config['_JT_NEEDS_SETUP'] = False
-        current_app.config['DEFAULT_CURRENCY'] = jt_config_get(
-            'server_currency',
-            current_app.config.get('FALLBACK_CURRENCY', 'USD')
-        )
-        current_app.config['DEFAULT_LANGUAGE'] = jt_config_get(
-            'server_language',
-            current_app.config.get('FALLBACK_LANGUAGE', 'en')
-        )
-        current_app.config['DEFAULT_LOCALE'] = jt_config_get(
-            'server_locale',
-            current_app.config.get('FALLBAK_LOCALE', 'en_US')
-        )
-
-    except Exception as e:
-        session.rollback()
-        raise e
+    # Update Configuration
+    current_app.config['_JT_NEEDS_SETUP'] = False
+    current_app.config['DEFAULT_CURRENCY'] = jt_config_get(
+        'server_currency',
+        current_app.config.get('FALLBACK_CURRENCY', 'USD')
+    )
+    current_app.config['DEFAULT_LANGUAGE'] = jt_config_get(
+        'server_language',
+        current_app.config.get('FALLBACK_LANGUAGE', 'en')
+    )
+    current_app.config['DEFAULT_LOCALE'] = jt_config_get(
+        'server_locale',
+        current_app.config.get('FALLBAK_LOCALE', 'en_US')
+    )
 
 
 def auto_setup(app):
-    '''
-    Set up Jade Tree automatically based on values provided in the application
-    configuration.
-    '''
+    """Automatically set up Jade Tree from the application configuration."""
     if app.config.get('_JT_DB_NEEDS_UPGRADE'):
         message = 'Database schema needs to be upgraded. Please run ' \
             "'flask db upgrade' and restart the server to complete the " \
@@ -167,7 +148,7 @@ def auto_setup(app):
     setup_args = dict(mode=server_mode)
     user_keys = ('email', 'name', 'language', 'locale', 'currency')
     for key in user_keys:
-        cfg_key = 'USER_{}'.format(key.upper())
+        cfg_key = f'USER_{key.upper()}'
         if cfg_key in app.config:
             setup_args[key] = app.config[cfg_key]
 
@@ -175,6 +156,7 @@ def auto_setup(app):
 
 
 def ensure_setup():
+    """Ensure that the Server Setup has completed before each request."""
     if current_app.config['_JT_NEEDS_SETUP']:
         # Special blueprint names are exempted
         if request.blueprint not in ('version', 'setup'):
@@ -182,8 +164,7 @@ def ensure_setup():
 
 
 def init_setup(app):
-    '''
-    '''
+    """Register the Setup Service with the Application."""
     if app.config.get('_JT_DB_NEEDS_INIT'):
         return
 

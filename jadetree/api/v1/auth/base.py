@@ -8,10 +8,18 @@ from flask import current_app
 from flask.views import MethodView
 
 from jadetree.api.common import JTApiBlueprint, auth
+from jadetree.api.v1.user.schema import UserSchema
 from jadetree.database import db
+from jadetree.exc import Error
 from jadetree.service import auth as auth_service
 
-from .schema import AuthTokenSchema, AuthUserSchema, ChangePasswordSchema, LoginSchema
+from .schema import (
+    AuthTokenSchema,
+    AuthUserSchema,
+    ChangePasswordSchema,
+    LoginSchema,
+    RegisterUserSchema,
+)
 
 #: Authentication Service Blueprint
 blp = JTApiBlueprint('auth', __name__, description='Authentication Service')
@@ -59,6 +67,35 @@ class LogoutView(MethodView):
         auth_service.invalidate_uid_hash(
             db.session,
             auth.current_user().uid_hash
+        )
+
+
+@blp.route('/auth/register')
+class RegisterView(MethodView):
+    """Register a new User."""
+    @blp.arguments(RegisterUserSchema)
+    @blp.response(UserSchema)
+    def post(self, args):
+        """Register a new Jade Tree user.
+
+        Registers a new user with the Jade Tree server. If the server mode is
+        Public, the user will be created in an inactive state and the user must
+        use a confirmation token and the `/auth/confirm` endpoint to complete
+        their registration and validate their email address.
+
+        If the server was set up in Personal mode, this endpoint is not
+        available and an error is returned with code 410 (Gone).
+        """
+        if current_app.config.get('_JT_SERVER_MODE', None) == 'personal':
+            message = "The '/setup' endpoint is not available after the " \
+                'server has been set up'
+            raise Error(message, status_code=410)
+
+        return auth_service.register_user(
+            db.session,
+            args['email'],
+            args['password'],
+            args['name'],
         )
 
 
