@@ -1,11 +1,5 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Application Factory.
 
-'''
 The :mod:`jadetree.factory` module contains a method :func:`create_app` which
 implements the Flask `Application Factory`_ pattern to create the application
 object dynamically.
@@ -16,7 +10,9 @@ Application default configuration values are found in the
 .. _`Application Factory`:
     https://flask.palletsprojects.com/en/1.1.x/patterns/appfactories/
 
-'''
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
+"""
 
 import configparser
 import os
@@ -26,7 +22,7 @@ from flask import Flask
 
 
 def read_version():
-    '''Read the Name and Version String from pyproject.toml'''
+    """Read the Name and Version String from pyproject.toml."""
     # Search for pyproject.toml
     d = pathlib.Path(__file__)
     name = None
@@ -48,23 +44,24 @@ def read_version():
 
 
 def create_app(app_config=None, app_name=None):
-    '''
+    """Create and Configure the Flask Application.
+
     Create and Configure the Application with the Flask `Application Factory`_
     pattern. The `app_config` dictionary will override configuration keys set
     via other methods, and is intended primarily for use in test frameworks to
     provide a predictable configuration for testing.
 
-    :param app_config: configuration override values
-    :type app_config: dict or None
-    :param app_name: application name override
-    :type app_name: str
-    :returns: Flask application instance
-    :rtype: :class:`Flask`
-    '''
+    Args:
+        app_config: Configuration override values which are applied after all
+            other configuration sources have been loaded
+        app_name: Application name override
+
+    Returns:
+        Flask application
+    """
     app = Flask(
         'jadetree',
-        static_folder='frontend/static',
-        template_folder='frontend/templates'
+        template_folder='templates'
     )
 
     # Load Application Name and Version from pyproject.toml

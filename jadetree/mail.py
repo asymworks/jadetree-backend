@@ -1,9 +1,8 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Email Support.
+
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
+"""
 
 from flask import current_app
 from flask_mail import Mail, Message
@@ -16,7 +15,7 @@ __all__ = ('init_mail', 'mail', 'send_email')
 
 
 def init_mail(app):
-    '''Register the Flask-Mail object with the Application'''
+    """Register the Flask-Mail object with the Application."""
     if not app.config.get('MAIL_ENABLED', False):
         app.logger.debug('Skipping mail setup (disabled)')
         return
@@ -40,19 +39,22 @@ def init_mail(app):
 
 
 def send_email(subject, recipients, body, html=None, sender=None):
-    '''Send an Email Message using Flask-Mail'''
+    """Send an Email Message using Flask-Mail."""
+    recip_list = [recipients] if isinstance(recipients, str) else recipients
+
     if not current_app.config.get('MAIL_ENABLED', False):
         current_app.logger.debug(
             'Skipping send_email({}) to {} (email disabled)'.format(
                 subject,
-                ', '.join(recipients)
+                ', '.join(recip_list)
             )
         )
         return
 
     if sender is None:
         sender = current_app.config['MAIL_SENDER']
-    msg = Message(subject, sender=sender, recipients=recipients)
+
+    msg = Message(subject, sender=sender, recipients=recip_list)
     msg.body = body
     msg.html = html
     mail.send(msg)

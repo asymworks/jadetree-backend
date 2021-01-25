@@ -76,6 +76,9 @@ serve :
 serve-psql :
 	poetry run python -m jadetree
 
+smtpd :
+	poetry run python -m smtpd -c DebuggingServer -n localhost:8025
+
 sqlalchemy :
 	/usr/local/Cellar/sqlite/3.32.1/bin/sqlite3 jadetree-dev.db
 
@@ -95,4 +98,4 @@ all: serve
 	docs docs-clean docs-serve \
 	lint shell serve shell-psql serve-psql \
 	test test-wip test-x \
-	mjml
+	mjml smtpd
