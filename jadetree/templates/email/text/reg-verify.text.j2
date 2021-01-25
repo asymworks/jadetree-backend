@@ -1,12 +1,12 @@
 Please validate your email address in order to get started using Jade Tree.
 
-{{ url_for('ConfirmView:get', token=confirm_token, _external=True) }}
+{{ frontend_url('reg_confirm', token=confirm_token) }}
 
 Has your token expired? Request a new confirmation email by visiting this link:
-{{ url_for('ResendView:index', email=email, _external=True) }}
+{{ frontend_url('reg_resend', email=email) }}
 
 ===============================================================================
 This message was sent to {{ email }} by Jade Tree. If you did not request this
 email, please report this to the system administrators using the below link:
 
-{{ url_for('ConfirmView:cancel', token=cancel_token, _external=True) }}
+{{ frontend_url('reg_cancel', token=cancel_token) }}

@@ -21,6 +21,11 @@ DB_DRIVER = 'sqlite'
 DB_FILE = 'jadetree-test.db'
 
 # Mail Configuration
+MAIL_ENABLED = True
 MAIL_SERVER = 'localhost'
 MAIL_SENDER = 'test@localhost'
 MAIL_SUPPRESS_SEND = True
+
+# Email Site Information
+SITE_ABUSE_MAILBOX = 'abuse@localhost'
+SITE_HELP_MAILBOX = 'help@localhost'

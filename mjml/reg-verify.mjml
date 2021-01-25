@@ -35,13 +35,13 @@
 <mj-wrapper border="1px solid #333957">
   <mj-section>
     <mj-column>
-      <mj-image width="64px" src="https://i.imgur.com/KO1vcE9.png" alt="Jade Tree"></mj-image>
+      <mj-image width="64px" src="{{ frontend_url('logo') }}" alt="Jade Tree"></mj-image>
       <mj-text mj-class="header">Please confirm your email</mj-text>
       
 <mj-text>Please validate your email address in order to get started using Jade Tree.</mj-text>
-<mj-button background-color="#2F67F6" color="#fff" font-size="15px" font-family="'Helvetica Neue',Arial,sans-serif" inner-padding="15px 25px" href="{{ url_for('ConfirmView:get', token=confirm_token, _external=True) }}">Confirm your Email</mj-button>
+<mj-button background-color="#2F67F6" color="#fff" font-size="15px" font-family="'Helvetica Neue',Arial,sans-serif" inner-padding="15px 25px" href="{{ frontend_url('reg_confirm', token=confirm_token) }}">Confirm your Email</mj-button>
 <mj-text align="left">
-  Or confirm by visiting <a href="{{ url_for('ConfirmView:index', _external=True) }}">{{ url_for('ConfirmView:index', _external=True) }}</a> and paste in the following token:
+  Or confirm by visiting <a href="{{ frontend_url('reg_confirm', token=confirm_token) }}">{{ frontend_url('reg_confirm') }}</a> and paste in the following token:
 </mj-text>
 <mj-table padding="20px">
   <tr style="border:1px dashed #222;font-size:90%;text-align:left">
@@ -50,7 +50,7 @@
 </mj-table>
 <mj-text align="left">
   <p>Has your token expired? Request a new confirmation email by visiting this link:</p>
-  <p><a href="{{ url_for('ResendView:index', email=email, _external=True) }}">{{ url_for('ResendView:index', email=email, _external=True) }}</a></p>
+  <p><a href="{{ frontend_url('reg_resend', email=email) }}">{{ frontend_url('reg_resend', email=email) }}</a></p>
 </mj-text>
 
     </mj-column>
@@ -59,7 +59,11 @@
 <mj-section>
   <mj-column>
     <mj-text mj-class="header">Need Help?</mj-text>
-    <mj-text>Please send feedback or bug info to <a href="mailto:info@jadetree.io">info@jadetree.io</a></mj-text>
+    <mj-text>Please send feedback or bug info to 
+      <a href="mailto:{{ site_help_mailbox }}">
+        {{ site_help_mailbox }}
+      </a>
+    </mj-text>
   </mj-column>
 </mj-section>
 
@@ -70,7 +74,7 @@
 <mj-text mj-class="footer">
   This message was sent to {{ email }} by Jade Tree. If you did not request this
   email, please
-  <a href="{{ url_for('ConfirmView:cancel', token=cancel_token, _external=True) }}">click here</a>
+  <a href="{{ frontend_url('reg_cancel', token=cancel_token) }}">click here</a>
   to report this to the system administrators.
 </mj-text>
 

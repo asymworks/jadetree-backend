@@ -141,6 +141,10 @@ def create_app(app_config=None, app_name=None):
         from .socketio import init_socketio
         init_socketio(app)
 
+        # Setup Frontend URLs and Templates
+        from .templates import init_templates
+        init_templates(app)
+
         # Startup Complete
         app.logger.info('{} startup complete'.format(app.config['APP_NAME']))
 

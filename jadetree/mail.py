@@ -20,7 +20,10 @@ def init_mail(app):
         app.logger.debug('Skipping mail setup (disabled)')
         return
 
-    for k in ('MAIL_SERVER', 'MAIL_SENDER'):
+    required_keys = (
+        'MAIL_SERVER', 'MAIL_SENDER', 'SITE_ABUSE_MAILBOX', 'SITE_HELP_MAILBOX'
+    )
+    for k in required_keys:
         if k not in app.config:
             raise ConfigError(
                 '{} must be defined in the application configuration'
@@ -29,6 +32,12 @@ def init_mail(app):
             )
 
     mail.init_app(app)
+
+    # Add Site Mailboxes to templates
+    app.jinja_env.globals.update(
+        site_abuse_mailbox=app.config['SITE_ABUSE_MAILBOX'],
+        site_help_mailbox=app.config['SITE_HELP_MAILBOX'],
+    )
 
     # Dump Configuration to Debug
     app.logger.debug(

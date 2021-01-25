@@ -24,7 +24,9 @@
     <mj-text mj-class="footer">
       This message was sent to {% raw %}{{ email }}{% endraw %} by Jade Tree.
       If you did not request this email, please report this to
-      <a href="mailto:abuse@jadetree.io">abuse@jadetree.io</a>.
+      <a href="mailto:{% raw %}{{ site_abuse_mailbox }}{% endraw %}">
+        {% raw %}{{ site_abuse_mailbox }}{% endraw %}
+      </a>.
     </mj-text>
     {% endblock footer %}
   </mj-column>
