@@ -29,9 +29,12 @@ def test_frontend_url_no_keys(app_config, monkeypatch):
     """Check that _JT_FRONTEND_URLS is not set when no FRONTEND_*_URLs."""
     monkeypatch.setitem(app_config, 'FRONTEND_HOST', 'http://frontend.local')
     monkeypatch.setitem(app_config, 'SERVER_NAME', 'http://server.local')
-    for k in app_config:
-        if k[:9] == 'FRONTEND_' and k[-5:] == '_PATH':
-            monkeypatch.delitem(app_config, k, raising=False)
+    fe_keys = [
+        k for k in app_config.keys()
+        if k[:9] == 'FRONTEND_' and k[-5:] == '_PATH'
+    ]
+    for k in fe_keys:
+        monkeypatch.delitem(app_config, k, raising=False)
 
     _app = MockApp(app_config)
     setup_frontend_urls(_app)

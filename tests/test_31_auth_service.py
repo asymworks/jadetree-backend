@@ -1,6 +1,7 @@
 """Test Authentication and Authorization Service."""
 
 import datetime
+import re
 
 from arrow import utcnow
 from flask import current_app
@@ -8,6 +9,7 @@ import pytest  # noqa: F401
 
 from jadetree.domain.models import User
 from jadetree.exc import AuthError, DomainError, JwtPayloadError, NoResults
+from jadetree.mail import mail
 from jadetree.service import auth as auth_service
 from jadetree.service.auth import JWT_SUBJECT_BEARER_TOKEN
 
@@ -80,6 +82,42 @@ def test_register_user_throws_bad_pw_number(session):
     assert str(exc_data.value) == 'Password must contain a number'
 
 
+def test_register_user_throws_no_pw_public(app, session, monkeypatch):
+    """Ensure a password is required in public mode."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
+    with pytest.raises(ValueError) as exc_data:
+        auth_service.register_user(session, 'test@jadetree.io', '', 'Test User')
+    assert len(session.query(User).all()) == 0
+    assert 'Password must be provided' in str(exc_data.value)
+
+
+def test_register_user_no_pw_personal(app, session, monkeypatch):
+    """Ensure a password is not required in personal mode."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'personal')
+    u = auth_service.register_user(session, 'test@jadetree.io', '', 'Test User')
+
+    assert u is not None
+    assert u.id > 0
+
+
+def test_register_user_no_pw_family(app, session, monkeypatch):
+    """Ensure a password is not required in family mode."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'family')
+    u = auth_service.register_user(session, 'test@jadetree.io', '', 'Test User')
+
+    assert u is not None
+    assert u.id > 0
+
+
+def test_register_user_throws_bad_pw_personal(app, session, monkeypatch):
+    """Ensure bad passwords are rejected in personal mode."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'personal')
+    with pytest.raises(ValueError) as exc_data:
+        auth_service.register_user(session, 'test@jadetree.io', 'hunter_JT', 'Test User')
+    assert len(session.query(User).all()) == 0
+    assert str(exc_data.value) == 'Password must contain a number'
+
+
 def test_register_user_throws_personal_mode(app, session, monkeypatch):
     """Ensure a second user cannot be registered in Personal mode."""
     auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
@@ -103,6 +141,114 @@ def test_register_user_confirmed_family_mode(app, session, monkeypatch):
         assert u.confirmed is True
 
 
+def test_register_user_sends_email_public(app, session, monkeypatch):
+    """Ensure a Registration Confirmation email is sent to the user."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
+    with app.app_context():
+        u = None
+        with mail.record_messages() as outbox:
+            u = auth_service.register_user(
+                session, 'test@jadetree.io', 'hunter2JT', 'Test User'
+            )
+
+            assert len(outbox) == 1
+            assert outbox[0].subject == '[Jade Tree] Confirm Your Registration'
+
+            # Load Tokens from Email
+            m = re.search(r'confirm\?token=([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*)', outbox[0].body)
+            assert m is not None
+            confirm_token = str(m.group(1))
+
+            m = re.search(r'cancel\?token=([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*)', outbox[0].body)
+            assert m is not None
+            cancel_token = str(m.group(1))
+
+            # Check Tokens
+            confirm_payload = auth_service.decodeJwt(current_app, confirm_token, leeway=10)
+            assert 'email' in confirm_payload
+            assert 'uid' in confirm_payload
+            assert confirm_payload['email'] == u.email
+            assert confirm_payload['uid'] == u.uid_hash
+
+            cancel_payload = auth_service.decodeJwt(current_app, cancel_token, leeway=10)
+            assert 'email' in cancel_payload
+            assert cancel_payload['email'] == u.email
+
+
+def test_resend_email_changes_uid_hash(app, session, monkeypatch):
+    """Ensure resending a Confirmation Email changes the UID hash."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
+    with app.app_context():
+        u = None
+        with mail.record_messages() as outbox:
+            u = auth_service.register_user(
+                session, 'test@jadetree.io', 'hunter2JT', 'Test User'
+            )
+            uid_hash_1 = u.uid_hash
+
+            u2 = auth_service.resend_confirmation(session, 'test@jadetree.io')
+
+            assert u2.uid_hash != uid_hash_1
+
+            assert len(outbox) == 2
+            assert outbox[0].subject == '[Jade Tree] Confirm Your Registration'
+            assert outbox[1].subject == '[Jade Tree] Confirm Your Registration'
+
+            # Load Tokens from Emails
+            m = re.search(r'confirm\?token=([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*)', outbox[0].body)
+            assert m is not None
+            confirm_token_1 = str(m.group(1))
+
+            m = re.search(r'confirm\?token=([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*)', outbox[1].body)
+            assert m is not None
+            confirm_token_2 = str(m.group(1))
+
+            # Check Tokens
+            assert confirm_token_1 != confirm_token_2
+            confirm_payload = auth_service.decodeJwt(current_app, confirm_token_2, leeway=10)
+            assert 'email' in confirm_payload
+            assert 'uid' in confirm_payload
+            assert confirm_payload['email'] == u.email
+            assert confirm_payload['uid'] == u2.uid_hash
+
+
+def test_register_user_no_email_personal(app, session, monkeypatch):
+    """Ensure a confirmation email is not sent in Personal mode."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'personal')
+    with app.app_context():
+        with mail.record_messages() as outbox:
+            auth_service.register_user(
+                session, 'test@jadetree.io', 'hunter2JT', 'Test User'
+            )
+
+            assert len(outbox) == 0
+
+
+def test_register_user_no_email_family(app, session, monkeypatch):
+    """Ensure a confirmation email is not sent in Family mode."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'family')
+    with app.app_context():
+        with mail.record_messages() as outbox:
+            auth_service.register_user(
+                session, 'test@jadetree.io', 'hunter2JT', 'Test User'
+            )
+
+            assert len(outbox) == 0
+
+
+def test_register_user_no_email_config(app, session, monkeypatch):
+    """Ensure a confirmation email is not sent when CONFIRM_REGISTRATION_EMAIL is set."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
+    monkeypatch.setitem(app.config, 'CONFIRM_REGISTRATION_EMAIL', False)
+    with app.app_context():
+        with mail.record_messages() as outbox:
+            auth_service.register_user(
+                session, 'test@jadetree.io', 'hunter2JT', 'Test User'
+            )
+
+            assert len(outbox) == 0
+
+
 def test_confirm_user(session):
     """Ensure a user can be confirmed."""
     u = auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
@@ -119,6 +265,59 @@ def test_confirm_user(session):
     assert u2.active is True
     assert u2.confirmed is True
     assert u2.confirmed is not None
+
+
+def test_confirm_user_sends_email(app, session, monkeypatch):
+    """Ensure a Welcome email is sent after confirmation."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
+    with app.app_context():
+        with mail.record_messages() as outbox:
+            u = auth_service.register_user(
+                session, 'test@jadetree.io', 'hunter2JT', 'Test User'
+            )
+
+            auth_service.confirm_user(session, u.uid_hash)
+
+            assert len(outbox) == 2
+            assert outbox[0].subject == '[Jade Tree] Confirm Your Registration'
+            assert outbox[1].subject == '[Jade Tree] Welcome to Jade Tree'
+
+
+def test_confirm_user_personal(app, session, monkeypatch):
+    """Ensure a user is automatically confirmed in personal mode."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'personal')
+    u = auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
+
+    assert u.id == 1
+    assert u.uid_hash is not None
+    assert u.active is True
+    assert u.confirmed is True
+    assert u.confirmed_at is not None
+
+
+def test_confirm_user_family(app, session, monkeypatch):
+    """Ensure a user is automatically confirmed in family mode."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'family')
+    u = auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
+
+    assert u.id == 1
+    assert u.uid_hash is not None
+    assert u.active is True
+    assert u.confirmed is True
+    assert u.confirmed_at is not None
+
+
+def test_confirm_user_auto(app, session, monkeypatch):
+    """Ensure a user can be confirmed in public mode with no email."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
+    monkeypatch.setitem(app.config, 'CONFIRM_REGISTRATION_EMAIL', False)
+    u = auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
+
+    assert u.id == 1
+    assert u.uid_hash is not None
+    assert u.active is True
+    assert u.confirmed is True
+    assert u.confirmed_at is not None
 
 
 def test_confirm_user_not_exists(session):

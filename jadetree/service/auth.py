@@ -7,7 +7,7 @@ Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
 import datetime
 
 from arrow import utcnow
-from flask import current_app
+from flask import current_app, render_template
 import jwt
 
 from jadetree.domain.models import User
@@ -19,6 +19,7 @@ from jadetree.exc import (
     JwtPayloadError,
     NoResults,
 )
+from jadetree.mail import send_email
 
 from .util import check_session
 from .validator import (
@@ -368,7 +369,8 @@ def register_user(session, email, password, name):
     """
     check_session(session)
 
-    if current_app.config.get('_JT_SERVER_MODE', None) == 'personal':
+    server_mode = current_app.config.get('_JT_SERVER_MODE', None)
+    if server_mode == 'personal':
         # Only one User can be registered in personal mode
         if session.query(User).count() != 0:
             raise DomainError(
@@ -377,8 +379,10 @@ def register_user(session, email, password, name):
 
     EmailValidator()(email)
 
-    skip_pw_modes = ('personal', 'family')
-    if current_app.config.get('_JT_SERVER_MODE', None) not in skip_pw_modes:
+    if not password and server_mode not in ('personal', 'family'):
+        raise ValueError('Password must be provided for public mode servers')
+
+    if password:
         LengthValidator(
             min=8,
             message='Password must be at least 8 characters long'
@@ -407,7 +411,19 @@ def register_user(session, email, password, name):
     u.confirmed = False
     u.created_at = utcnow()
 
-    if current_app.config.get('_JT_SERVER_MODE', None) in skip_pw_modes:
+    # Automatically confirm user registration if the server mode is 'personal'
+    # or 'family'; otherwise send an email to confirm the email address is
+    # valid and the user wants to register. The CONFIRM_REGISTRATION_EMAIL
+    # configuration value can override this default.
+    send_email = current_app.config.get(
+        'CONFIRM_REGISTRATION_EMAIL',
+        server_mode not in ('personal', 'family'),
+    )
+    if send_email:
+        # Send the registration confirmation email
+        send_confirmation_email(u)
+
+    else:
         # Automatically confirm the user
         u.active = True
         u.confirmed = True
@@ -417,6 +433,18 @@ def register_user(session, email, password, name):
     session.commit()
 
     return u
+
+
+def resend_confirmation(session, email):
+    """Resend a Registration Confirmation Email.
+
+    Invalidates the User ID Hash and resends the confirmation email with a new
+    confirmation and cancellation token.
+    """
+    user = load_user_by_email(session, email)
+    user = invalidate_uid_hash(session, user.uid_hash)
+    send_confirmation_email(user)
+    return user
 
 
 def confirm_user(session, uid_hash):
@@ -456,6 +484,16 @@ def confirm_user(session, uid_hash):
 
     session.add(u)
     session.commit()
+
+    # Send a Welcome Email if they previously had to confirm their
+    # email address
+    server_mode = current_app.config.get('_JT_SERVER_MODE', None)
+    send_email = current_app.config.get(
+        'CONFIRM_REGISTRATION_EMAIL',
+        server_mode not in ('personal', 'family'),
+    )
+    if send_email:
+        send_welcome_email(u)
 
     return u
 
@@ -584,6 +622,61 @@ def change_password(session, uid_hash, current_password, new_password, logout_se
 
     # Return Token
     return { 'token': token, 'user': u }
+
+
+def send_confirmation_email(user):
+    """Send an email to confirm registration.
+
+    Sends an email to the user containing a registration confirmation token
+    and a cancellation token so they can confirm their email address and that
+    they intended to register with Jade Tree.  The tokens are JWTs generated
+    from the user ID hash and the confirmation expiration time is taken from
+    the application configuration `TOKEN_VALID_INTERVAL` setting.  The cancel
+    registration token does not expire.
+    """
+    confirm_token = generate_user_token(
+        user,
+        JWT_SUBJECT_CONFIRM_EMAIL,
+        email=user.email,
+    )
+    cancel_token = encodeJwt(
+        current_app,
+        subject=JWT_SUBJECT_CANCEL_EMAIL,
+        email=user.email,
+    )
+
+    app_title = current_app.config.get('APP_TITLE', 'Jade Tree')
+    send_email(
+        subject=f'[{app_title}] Confirm Your Registration',
+        recipients=user.email,
+        body=render_template(
+            'email/text/reg-verify.text.j2',
+            confirm_token=confirm_token,
+            cancel_token=cancel_token,
+            email=user.email,
+        ),
+        html=render_template(
+            'email/html/reg-verify.html.j2',
+            confirm_token=confirm_token,
+            cancel_token=cancel_token,
+            email=user.email,
+        ),
+    )
+
+
+def send_welcome_email(user):
+    """Send an email to welcome user to Jade Tree."""
+    app_title = current_app.config.get('APP_TITLE', 'Jade Tree')
+    send_email(
+        subject=f'[{app_title}] Welcome to {app_title}',
+        recipients=user.email,
+        body=render_template(
+            'email/text/reg-welcome.text.j2', email=user.email,
+        ),
+        html=render_template(
+            'email/html/reg-welcome.html.j2', email=user.email,
+        ),
+    )
 
 
 def auth_user_list(session):

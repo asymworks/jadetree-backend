@@ -26,6 +26,14 @@ MAIL_SERVER = 'localhost'
 MAIL_SENDER = 'test@localhost'
 MAIL_SUPPRESS_SEND = True
 
+# Frontend Configuration
+FRONTEND_HOST = 'http://localhost'
+FRONTEND_LOGIN_PATH = '/login'
+FRONTEND_LOGO_PATH = '/logo.png'
+FRONTEND_REG_CONFIRM_PATH = '/register/confirm'
+FRONTEND_REG_CANCEL_PATH = '/register/cancel'
+FRONTEND_REG_RESEND_PATH = '/register/resend'
+
 # Email Site Information
 SITE_ABUSE_MAILBOX = 'abuse@localhost'
 SITE_HELP_MAILBOX = 'help@localhost'
