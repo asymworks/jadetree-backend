@@ -101,7 +101,7 @@ def setup_jadetree(session, **kwargs):
     )
 
     if not u.active:
-        u = auth_service.confirm_user(session, u.uid_hash)
+        u = auth_service.confirm_user(session, u.uid_hash, user_email)
 
     # Store the Setup Date and Server Mode
     jt_config_set('setup', datetime.date.today().isoformat())

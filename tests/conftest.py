@@ -1,9 +1,8 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Test Fixtures.
+
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
+"""
 
 import os
 
@@ -21,13 +20,12 @@ DATA_DIR = '.pytest-data'
 
 @pytest.fixture(scope='session')
 def app_config(request):
-    '''
-    Application Configuration for the Test Session
+    """Application Configuration for the Test Session.
 
     Loads configuration from config/test.py, patches the database file with
     a session-global temporary file, and returns the new configuration data
     to pass to create_app().
-    '''
+    """
     test_dir = os.path.dirname(__file__)
     test_cfg = os.path.join(test_dir, '../config/test.py')
     cfg_file = os.environ.get('JADETREE_TEST_CONFIG', test_cfg)
@@ -62,12 +60,11 @@ def app_config(request):
 
 @pytest.fixture(scope='module')
 def app(request, app_config):
-    '''
-    Module-Wide Jade Tree Flask Application with Database
+    """Module-Wide Jade Tree Flask Application with Database.
 
     Loads configuration from config/test.py, patches the database file with
     a session-global temporary file, and initializes the application.
-    '''
+    """
     # Apply Database Migrations
     _app = create_app(app_config, __name__)
     with _app.app_context():
@@ -95,12 +92,11 @@ def app(request, app_config):
 
 @pytest.fixture(scope='module')
 def app_without_database(request, app_config):
-    '''
-    Module-Wide Jade Tree Flask Application without Database
+    """Module-Wide Jade Tree Flask Application without Database.
 
     Loads configuration from config/test.py and initializes the application,
     but does not create the database.
-    '''
+    """
     _db.clear_mappers()
 
     # Initialize Application and Context
@@ -120,7 +116,7 @@ def app_without_database(request, app_config):
 
 @pytest.fixture(scope='function')
 def session(request, monkeypatch, app):
-    '''Create a new Database Session for the Request'''
+    """Create a new Database Session for the Request."""
     with app.app_context():
         connection = _db.engine.connect()
         transaction = connection.begin()
@@ -142,12 +138,14 @@ def session(request, monkeypatch, app):
 
 @pytest.fixture(scope='function')
 def user_without_profile(session):
+    """Create a user without a profile."""
     u = auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
-    u = auth_service.confirm_user(session, u.uid_hash)
+    u = auth_service.confirm_user(session, u.uid_hash, 'test@jadetree.io')
     return u
 
 
 @pytest.fixture(scope='function')
 def user_with_profile(session, user_without_profile):
+    """Create a user with a profile."""
     u = user_service.setup_user(session, user_without_profile, 'en', 'en_US', 'USD')
     return u

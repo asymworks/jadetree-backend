@@ -190,6 +190,28 @@ def test_change_password_bad_new_password(app, session):
         assert 'Password' in data['errors']['json']['new_password'][0]
 
 
+def test_logout(app, session):
+    """Ensure the user can be logged out and the ID hash changes."""
+    with app.test_client() as client:
+        login_data = { 'email': 'test@jadetree.io', 'password': 'hunter2JT' }
+        rv = client.post(
+            '/api/v1/auth/login',
+            content_type='application/json',
+            data=json.dumps(login_data),
+        )
+
+        token = check_login(rv, 'test@jadetree.io', session)
+
+        user = load_user_by_email(session, 'test@jadetree.io')
+        user_hash = user.uid_hash
+
+        headers = [('Authorization', f'Bearer {token}')]
+        rv = client.get('/api/v1/auth/logout', headers=headers)
+
+        assert rv.status_code == 204
+        assert user.uid_hash != user_hash
+
+
 def test_register_new_user(app, session):
     """Register a new User in Family Mode."""
     with app.test_client() as client:
@@ -218,3 +240,38 @@ def test_register_new_user(app, session):
 
         user = load_user_by_email(session, 'test2@jadetree.io')
         assert user.check_password('aSecu43Pa55w0rd')
+
+
+def test_user_list(app):
+    """Check that the User List is the list of registered users."""
+    with app.test_client() as client:
+        # Register a new User
+        user_data = {
+            'email': 'test2@jadetree.io',
+            'password': 'aSecu43Pa55w0rd',
+            'name': 'Second User',
+        }
+        rv = client.post(
+            '/api/v1/auth/register',
+            content_type='application/json',
+            data=json.dumps(user_data),
+        )
+
+        assert rv.status_code == 200
+
+        rv = client.get('/api/v1/auth/login')
+        assert rv.status_code == 200
+
+        data = json.loads(rv.data)
+        assert len(data) == 2
+
+        assert 'email' in data[0]
+        assert 'name' in data[0]
+        assert 'email' in data[1]
+        assert 'name' in data[1]
+
+        assert data[0]['email'] == 'test@jadetree.io'
+        assert data[0]['name'] == 'Test User'
+
+        assert data[1]['email'] == 'test2@jadetree.io'
+        assert data[1]['name'] == 'Second User'

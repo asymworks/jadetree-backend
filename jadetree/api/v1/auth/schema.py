@@ -35,6 +35,16 @@ class RegisterUserSchema(Schema):
     name = fields.Str(require=True)
 
 
+class RegistrationEmailSchema(Schema):
+    """Schema holding an Email Address."""
+    email = fields.Email(required=True)
+
+
+class RegistrationTokenSchema(Schema):
+    """Schema holding a JSON Web Token."""
+    token = fields.Str()
+
+
 class ChangePasswordSchema(Schema):
     """Schema to change a User Password.
 

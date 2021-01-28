@@ -259,7 +259,7 @@ def test_confirm_user(session):
     assert u.confirmed is False
     assert u.confirmed_at is None
 
-    u2 = auth_service.confirm_user(session, u.uid_hash)
+    u2 = auth_service.confirm_user(session, u.uid_hash, 'test@jadetree.io')
 
     assert u2 == u
     assert u2.active is True
@@ -276,7 +276,7 @@ def test_confirm_user_sends_email(app, session, monkeypatch):
                 session, 'test@jadetree.io', 'hunter2JT', 'Test User'
             )
 
-            auth_service.confirm_user(session, u.uid_hash)
+            auth_service.confirm_user(session, u.uid_hash, 'test@jadetree.io')
 
             assert len(outbox) == 2
             assert outbox[0].subject == '[Jade Tree] Confirm Your Registration'
@@ -326,9 +326,22 @@ def test_confirm_user_not_exists(session):
     assert u.id == 1
 
     with pytest.raises(NoResults) as exc_data:
-        auth_service.confirm_user(session, '0000')
+        auth_service.confirm_user(session, '0000', None)
 
     assert str(exc_data.value) == 'Could not find a user with the given hash'
+    assert u.active is False
+    assert u.confirmed is False
+
+
+def test_confirm_user_wrong_email(session):
+    """Ensure a user cannot be confirmed with a mismatched email."""
+    u = auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
+    assert u.id == 1
+
+    with pytest.raises(ValueError) as exc_data:
+        auth_service.confirm_user(session, u.uid_hash, 'test@bad.io')
+
+    assert 'Email address does not match' in str(exc_data.value)
     assert u.active is False
     assert u.confirmed is False
 
@@ -346,11 +359,61 @@ def test_confirm_user_already_confirmed(session):
     u.confirmed_at = utcnow()
 
     with pytest.raises(DomainError) as exc_data:
-        auth_service.confirm_user(session, u.uid_hash)
+        auth_service.confirm_user(session, u.uid_hash, 'test@jadetree.io')
 
     assert 'already confirmed' in str(exc_data.value)
     assert u.active is False
     assert u.confirmed is True
+
+
+def test_confirm_user_bad_token_no_uid(app, session):
+    """Ensure a token without a uid subject is rejected."""
+    u = auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
+    token = auth_service.encodeJwt(
+        app,
+        subject=auth_service.JWT_SUBJECT_CONFIRM_EMAIL,
+        email='test@jadetree.io'
+    )
+
+    with pytest.raises(JwtPayloadError) as exc_data:
+        auth_service.confirm_user_with_token(session, token)
+
+    assert 'uid claim' in str(exc_data.value)
+    assert u.active is False
+    assert u.confirmed is False
+
+
+def test_confirm_user_bad_token_no_email(app, session):
+    """Ensure a token without an email subject is rejected."""
+    u = auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
+    token = auth_service.encodeJwt(
+        app,
+        subject=auth_service.JWT_SUBJECT_CONFIRM_EMAIL,
+        uid=u.uid_hash
+    )
+
+    with pytest.raises(JwtPayloadError) as exc_data:
+        auth_service.confirm_user_with_token(session, token)
+
+    assert 'email claim' in str(exc_data.value)
+    assert u.active is False
+    assert u.confirmed is False
+
+
+def test_cancel_user_bad_token_no_email(app, session):
+    """Ensure a token without an email subject is rejected."""
+    u = auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
+    token = auth_service.encodeJwt(
+        app,
+        subject=auth_service.JWT_SUBJECT_CANCEL_EMAIL,
+    )
+
+    with pytest.raises(JwtPayloadError) as exc_data:
+        auth_service.cancel_registration_with_token(session, token)
+
+    assert 'email claim' in str(exc_data.value)
+    assert u.active is False
+    assert u.confirmed is False
 
 
 def test_get_user(session):
@@ -461,7 +524,7 @@ def test_change_user_password(app, session, monkeypatch):
 
     monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
 
-    u2 = auth_service.confirm_user(session, u.uid_hash)
+    u2 = auth_service.confirm_user(session, u.uid_hash, 'test@jadetree.io')
     rv = auth_service.change_password(
         session,
         u2.uid_hash,
@@ -485,7 +548,7 @@ def test_change_user_password_keep_hash(app, session, monkeypatch):
 
     monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
 
-    u2 = auth_service.confirm_user(session, u.uid_hash)
+    u2 = auth_service.confirm_user(session, u.uid_hash, 'test@jadetree.io')
     rv = auth_service.change_password(
         session,
         u2.uid_hash,

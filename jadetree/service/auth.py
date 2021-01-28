@@ -441,13 +441,25 @@ def resend_confirmation(session, email):
     Invalidates the User ID Hash and resends the confirmation email with a new
     confirmation and cancellation token.
     """
-    user = load_user_by_email(session, email)
-    user = invalidate_uid_hash(session, user.uid_hash)
-    send_confirmation_email(user)
-    return user
+    check_session(session)
+
+    # FIXME: Add Context Manager
+    # with session:
+    u = load_user_by_email(session, email)
+    if u is None:
+        raise NoResults('Could not find a user with the given hash')
+
+    if u.confirmed:
+        raise DomainError(
+            f'User already confirmed {u.confirmed_at.humanize()}'
+        )
+
+    u = invalidate_uid_hash(session, u.uid_hash)
+    send_confirmation_email(u)
+    return u
 
 
-def confirm_user(session, uid_hash):
+def confirm_user(session, uid_hash, email):
     """Confirm a User's Email Address.
 
     Confirm a user's registration status, and set the user to the active state
@@ -456,6 +468,7 @@ def confirm_user(session, uid_hash):
     Args:
         session: Database session
         uid_hash: User ID Hash (`User.uid_hash`)
+        email: User Email Address
 
     Returns:
         User object
@@ -463,15 +476,18 @@ def confirm_user(session, uid_hash):
     Raises:
         NoResults: A user was not found with the given ID hash
         DomainError: If the user has already confirmed their email address
+        ValueError: If the email address provided does not match the database
     """
     check_session(session)
 
     # FIXME: Add Context Manager
     # with session:
-
     u = load_user_by_hash(session, uid_hash)
     if u is None:
         raise NoResults('Could not find a user with the given hash')
+
+    if email != u.email:
+        raise ValueError('Email address does not match database value')
 
     if u.confirmed:
         raise DomainError(
@@ -496,6 +512,112 @@ def confirm_user(session, uid_hash):
         send_welcome_email(u)
 
     return u
+
+
+def cancel_registration(session, email):
+    """Cancel a User's Registration.
+
+    Cancels a user's registration and removes the unverified user from the Jade
+    Tree database.
+
+    Args:
+        session: Database session
+        email: User Email Address
+
+    Raises:
+        NoResults: A user was not found with the given ID hash
+        DomainError: If the user has already confirmed their email address
+    """
+    check_session(session)
+
+    # FIXME: Add Context Manager
+    # with session:
+
+    u = load_user_by_email(session, email)
+    if u is None:
+        raise NoResults('Could not find a user with the given email address')
+
+    if u.confirmed:
+        raise DomainError(
+            f'User already confirmed {u.confirmed_at.humanize()}'
+        )
+
+    session.delete(u)
+    session.commit()
+
+
+def confirm_user_with_token(session, token):
+    """Confirm a User Registration from the Confirmation Token.
+
+    Uses the confirmation token sent in the registration confirmation email to
+    confirm user registration. If the token is invalid, the user is already
+    confirmed, or the email address in the token does not match the user email
+    address, an exception is raised.
+
+    Args:
+        session: Database session
+        token: JSON Web Token from send_confirmation_email()
+
+    Returns:
+        User instance
+
+    Raises:
+        JwtInvalidTokenError: When the token is not a valid JWT or has an
+            invalid field setting
+        JwtExpiredTokenError: When the token has expired
+        JwtPayloadError: When the token has an invalid subject or other
+            payload claim
+        DomainError: When the user is already registered
+        ValueError: When the token email address does not match the database
+    """
+    payload = decodeJwt(
+        current_app,
+        token,
+        leeway=30,
+        subject=JWT_SUBJECT_CONFIRM_EMAIL,
+    )
+
+    if 'uid' not in payload:
+        raise JwtPayloadError('Missing uid claim in token', payload_key='uid')
+    if 'email' not in payload:
+        raise JwtPayloadError('Missing email claim in token', payload_key='email')
+
+    return confirm_user(session, payload['uid'], payload['email'])
+
+
+def cancel_registration_with_token(session, token):
+    """Cancel a User Registration from the Cancellation Token.
+
+    Uses the confirmation token sent in the registration confirmation email to
+    cancel user registration. If the token is invalid or the user is already
+    confirmed, an exception is raised.
+
+    Args:
+        session: Database session
+        token: JSON Web Token from send_confirmation_email()
+
+    Returns:
+        User instance
+
+    Raises:
+        JwtInvalidTokenError: When the token is not a valid JWT or has an
+            invalid field setting
+        JwtExpiredTokenError: When the token has expired
+        JwtPayloadError: When the token has an invalid subject or other
+            payload claim
+        DomainError: When the user is already registered
+    """
+    payload = decodeJwt(
+        current_app,
+        token,
+        leeway=30,
+        subject=JWT_SUBJECT_CANCEL_EMAIL,
+    )
+
+    if 'email' not in payload:
+        raise JwtPayloadError('Missing email claim in token', payload_key='email')
+
+    return cancel_registration(session, payload['email'])
 
 
 def login_user(session, email, password):

@@ -68,6 +68,23 @@ def check_login(rv, email, session):
     return data['token']
 
 
+def check_error(rv, code, exc_class, message):
+    """Check that a response is an error with the expected code and message."""
+    assert rv.status_code == code
+
+    data = json.loads(rv.data)
+    assert 'class' in data
+    assert 'status' in data
+    assert 'code' in data
+    assert 'message' in data
+
+    print(data)
+
+    assert data['class'] == exc_class
+    assert data['code'] == code
+    assert message in data['message']
+
+
 def check_unauthorized(rv, message='Invalid credentials'):
     """Check that a login was rejected with invalid credentials."""
     assert rv.status_code == 401

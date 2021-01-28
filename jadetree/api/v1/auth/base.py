@@ -10,7 +10,7 @@ from flask.views import MethodView
 from jadetree.api.common import JTApiBlueprint, auth
 from jadetree.api.v1.user.schema import UserSchema
 from jadetree.database import db
-from jadetree.exc import Error
+from jadetree.exc import DomainError, Error, NoResults
 from jadetree.service import auth as auth_service
 
 from .schema import (
@@ -19,6 +19,8 @@ from .schema import (
     ChangePasswordSchema,
     LoginSchema,
     RegisterUserSchema,
+    RegistrationEmailSchema,
+    RegistrationTokenSchema,
 )
 
 #: Authentication Service Blueprint
@@ -97,6 +99,74 @@ class RegisterView(MethodView):
             args['password'],
             args['name'],
         )
+
+
+@blp.route('/auth/cancel')
+class CancelView(MethodView):
+    """Cancel a User Registration."""
+    @blp.arguments(RegistrationTokenSchema, location='query')
+    @blp.response(code=204)
+    def get(self, args):
+        """Cancel a User Registration.
+
+        Loads a User ID hash and email address from the provided token and
+        cancels user registration. If the user has already confirmed their
+        registration, or no registration is pending, or if the token cannot
+        be validated, an error is returned.
+        """
+        try:
+            auth_service.cancel_registration_with_token(db.session, args['token'])
+
+        except Error as e:
+            # JSON Web Token Errors return 400
+            e.status_code = 400
+            raise e
+
+
+@blp.route('/auth/confirm')
+class ConfirmView(MethodView):
+    """Confirm a User Registration."""
+    @blp.arguments(RegistrationTokenSchema, location='query')
+    @blp.response(UserSchema)
+    def get(self, args):
+        """Confirm a User Registration.
+
+        Loads a User ID hash and email address from the provided token and
+        completes user registration. If the user has already confirmed their
+        registration, or no registration is pending, or if the token cannot
+        be validated, an error is returned.
+        """
+        try:
+            return auth_service.confirm_user_with_token(db.session, args['token'])
+
+        except ValueError as e:
+            raise DomainError(str(e), status_code=400)
+
+        except Error as e:
+            # JSON Web Token Errors return 400
+            e.status_code = 400
+            raise e
+
+
+@blp.route('/auth/resendConfirmation')
+class ResendView(MethodView):
+    """Resend a User Registration Confirmation."""
+    @blp.arguments(RegistrationEmailSchema, location='query')
+    @blp.response(UserSchema)
+    def get(self, args):
+        """Resend a User Registration Confirmation.
+
+        Resends a registration confirmation email to the provided email
+        address. If the user has already confirmed their registration, or no
+        registration is pending, or if the token cannot be validated, an error
+        is returned.
+        """
+        try:
+            return auth_service.resend_confirmation(db.session, args['email'])
+
+        except Exception:
+            # Do not leak which emails do or do not exist in the system
+            raise NoResults('Invalid email or email is not pending registration')
 
 
 @blp.route('/auth/changePassword')
