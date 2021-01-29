@@ -41,9 +41,10 @@ class JTPasswordValidator(Validator):
         'letter, a lower-case letter, and a number'
     )
 
-    def __init__(self, *, error: typing.Optional[str] = None):
+    def __init__(self, *, field: typing.Optional[str] = None, error: typing.Optional[str] = None):
         """Initialize the Password Validator."""
         self.error = error or self.default_message  # type: str
+        self.field_name = field or '_schema'
 
     def _format_error(self, value) -> typing.Any:
         return self.error.format(input=value)
@@ -56,6 +57,6 @@ class JTPasswordValidator(Validator):
                 val(value)
             except ValueError:
                 # Re-Raise with better message
-                raise ValidationError(message)
+                raise ValidationError(message, self.field_name)
 
         return value

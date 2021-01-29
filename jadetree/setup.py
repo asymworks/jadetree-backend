@@ -44,7 +44,8 @@ def jt_config_set(key, value):
             jadetree_config.c.key == key
         )
 
-    db.engine.execute(q)
+    with db.engine.begin() as conn:
+        conn.execute(q)
 
 
 def setup_jadetree(session, **kwargs):

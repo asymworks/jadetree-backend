@@ -4,6 +4,16 @@ import json
 
 import pytest  # noqa: F401
 
+# Always use 'mock_jt_config' and 'session' fixtures so database changes
+# are rolled back
+pytestmark = pytest.mark.usefixtures('mock_jt_config', 'mock_jt_setup', 'session')
+
+
+@pytest.fixture(scope='function')
+def mock_jt_setup(app, monkeypatch):
+    """Reset the `_JT_NEEDS_SETUP` configuration value between tests."""
+    monkeypatch.setitem(app.config, '_JT_NEEDS_SETUP', True)
+
 
 def test_setup_api_no_defaults(app):
     """Check that the Setup API does not return defaults when not set."""
@@ -13,6 +23,153 @@ def test_setup_api_no_defaults(app):
 
         data = json.loads(rv.data)
         assert len(data.keys()) == 0
+
+
+@pytest.mark.wip
+def test_setup_api_personal_with_no_password(app, monkeypatch):
+    """Check the Setup API in Personal Mode with no password."""
+    with app.test_client() as client:
+        # Setup Server
+        setup_data = {
+            'mode': 'personal',
+            'email': 'test@jadetree.io',
+            'name': 'Test User',
+        }
+        rv = client.post(
+            '/api/v1/setup',
+            content_type='application/json',
+            data=json.dumps(setup_data),
+        )
+
+        assert rv.status_code == 204
+
+
+@pytest.mark.wip
+def test_setup_api_personal_with_blank_password(app):
+    """Check the Setup API in Personal Mode with a blank password."""
+    with app.test_client() as client:
+        # Setup Server
+        setup_data = {
+            'mode': 'personal',
+            'email': 'test@jadetree.io',
+            'password': '',
+            'name': 'Test User',
+        }
+        rv = client.post(
+            '/api/v1/setup',
+            content_type='application/json',
+            data=json.dumps(setup_data),
+        )
+
+        assert rv.status_code == 204
+
+
+@pytest.mark.wip
+def test_setup_api_family_with_no_password(app):
+    """Check the Setup API in Personal Mode with no password."""
+    with app.test_client() as client:
+        # Setup Server
+        setup_data = {
+            'mode': 'family',
+            'email': 'test@jadetree.io',
+            'name': 'Test User',
+        }
+        rv = client.post(
+            '/api/v1/setup',
+            content_type='application/json',
+            data=json.dumps(setup_data),
+        )
+
+        assert rv.status_code == 204
+
+
+@pytest.mark.wip
+def test_setup_api_family_with_blank_password(app):
+    """Check the Setup API in Family Mode with a blank password."""
+    with app.test_client() as client:
+        # Setup Server
+        setup_data = {
+            'mode': 'family',
+            'email': 'test@jadetree.io',
+            'password': '',
+            'name': 'Test User',
+        }
+        rv = client.post(
+            '/api/v1/setup',
+            content_type='application/json',
+            data=json.dumps(setup_data),
+        )
+
+        assert rv.status_code == 204
+
+
+@pytest.mark.wip
+def test_setup_api_oublic_with_no_password(app):
+    """Check the Setup API in Public Mode with no password."""
+    with app.test_client() as client:
+        # Setup Server
+        setup_data = {
+            'mode': 'public',
+            'email': 'test@jadetree.io',
+            'name': 'Test User',
+        }
+        rv = client.post(
+            '/api/v1/setup',
+            content_type='application/json',
+            data=json.dumps(setup_data),
+        )
+
+        assert rv.status_code == 422
+
+        data = json.loads(rv.data)
+        assert 'status' in data
+        assert 'code' in data
+        assert 'errors' in data
+
+        assert data['code'] == 422
+        assert data['status'] == 'Unprocessable Entity'
+
+        assert len(data['errors']) == 1
+        assert 'json' in data['errors']
+        assert len(data['errors']['json']) == 1
+        assert 'password' in data['errors']['json']
+        assert len(data['errors']['json']['password']) == 1
+        assert 'Password' in data['errors']['json']['password'][0]
+
+
+@pytest.mark.wip
+def test_setup_api_public_with_blank_password(app):
+    """Check the Setup API in Family Mode with a blank password."""
+    with app.test_client() as client:
+        # Setup Server
+        setup_data = {
+            'mode': 'public',
+            'email': 'test@jadetree.io',
+            'password': '',
+            'name': 'Test User',
+        }
+        rv = client.post(
+            '/api/v1/setup',
+            content_type='application/json',
+            data=json.dumps(setup_data),
+        )
+
+        assert rv.status_code == 422
+
+        data = json.loads(rv.data)
+        assert 'status' in data
+        assert 'code' in data
+        assert 'errors' in data
+
+        assert data['code'] == 422
+        assert data['status'] == 'Unprocessable Entity'
+
+        assert len(data['errors']) == 1
+        assert 'json' in data['errors']
+        assert len(data['errors']['json']) == 1
+        assert 'password' in data['errors']['json']
+        assert len(data['errors']['json']['password']) == 1
+        assert 'Password' in data['errors']['json']['password'][0]
 
 
 def test_setup_api_forced_mode_hint(app, monkeypatch):

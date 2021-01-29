@@ -21,7 +21,7 @@ class SetupSchema(Schema):
     """Schema for Jade Tree Server Setup."""
     mode = fields.Str(required=True)
     email = fields.Email(required=True)
-    password = fields.Str(required=True, validate=JTPasswordValidator())
+    password = fields.Str(missing='')
     name = fields.Str(required=True)
 
     # Validate server mode strings
@@ -56,6 +56,10 @@ class SetupSchema(Schema):
             )
             if config_val is not None and data[key] != config_val:
                 raise ValidationError(err_msg.format(key, config_val), key)
+
+        # Check Password if not in Personal or Family mode
+        if data['mode'] not in ('personal', 'family'):
+            JTPasswordValidator(field='password')(data['password'])
 
 
 @blp.route('/setup')

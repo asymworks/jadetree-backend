@@ -11,6 +11,7 @@ from alembic.config import Config
 import flask
 import pytest
 
+import jadetree
 from jadetree.database import db as _db
 from jadetree.factory import create_app
 from jadetree.service import auth as auth_service, user as user_service
@@ -134,6 +135,25 @@ def session(request, monkeypatch, app):
 
     request.addfinalizer(teardown)
     return session
+
+
+@pytest.fixture(scope='function')
+def mock_jt_config(monkeypatch):
+    """Patch jt_config_* functions so no database writes occur."""
+    mocked_jt_config = dict()
+
+    def mock_jt_config_has(key):
+        return key in mocked_jt_config
+
+    def mock_jt_config_get(key, default=None):
+        return mocked_jt_config.get(key, default)
+
+    def mock_jt_config_set(key, value):
+        mocked_jt_config[key] = value
+
+    monkeypatch.setattr(jadetree.setup, 'jt_config_has', mock_jt_config_has)
+    monkeypatch.setattr(jadetree.setup, 'jt_config_get', mock_jt_config_get)
+    monkeypatch.setattr(jadetree.setup, 'jt_config_set', mock_jt_config_set)
 
 
 @pytest.fixture(scope='function')
