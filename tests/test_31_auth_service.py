@@ -627,3 +627,28 @@ def test_user_list_public(app, session, monkeypatch):
     monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
     with pytest.raises(DomainError):
         auth_service.auth_user_list(session)
+
+
+def test_unconfirmed_user_cannot_log_in(app, session, monkeypatch):
+    """Ensure an unconfirmed user cannot log in."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
+
+    auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
+    with pytest.raises(AuthError) as exc_info:
+        auth_service.login_user(session, 'test@jadetree.io', 'hunter2JT')
+
+    assert 'confirmed registration' in str(exc_info.value)
+
+
+def test_inactive_user_cannot_log_in(app, session, monkeypatch):
+    """Ensure an inactivated user cannot log in."""
+    monkeypatch.setitem(app.config, '_JT_SERVER_MODE', 'public')
+
+    u = auth_service.register_user(session, 'test@jadetree.io', 'hunter2JT', 'Test User')
+    auth_service.confirm_user(session, u.uid_hash, 'test@jadetree.io')
+
+    monkeypatch.setattr(u, 'active', False)
+    with pytest.raises(AuthError) as exc_info:
+        auth_service.login_user(session, 'test@jadetree.io', 'hunter2JT')
+
+    assert 'active' in str(exc_info.value)

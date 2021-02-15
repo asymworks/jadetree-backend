@@ -90,8 +90,10 @@ def setup_jadetree(session, **kwargs):
         )
 
     # Set the Server Mode so that register_user knows not to require a
-    # password for 'personal' or 'family' modes
+    # password for 'personal' or 'family' modes. Also set a flag so that
+    # no emails are sent in 'public' mode.
     current_app.config['_JT_SERVER_MODE'] = server_mode
+    current_app.config['_JT_IN_SETUP'] = True
 
     # Register and Confirm the User
     u = auth_service.register_user(
@@ -122,6 +124,9 @@ def setup_jadetree(session, **kwargs):
         'server_locale',
         current_app.config.get('FALLBAK_LOCALE', 'en_US')
     )
+
+    # Clear the Setup Flag
+    current_app.config['_JT_IN_SETUP'] = False
 
 
 def auto_setup(app):

@@ -354,9 +354,6 @@ def register_user(session, email, password, name):
         email: User email address
         password: User password
         name: User name
-        confirm: Optional; Set to True to automatically confirm the user's
-            registration and email address. Should only be used in cases like
-            initial server setup.
 
     Returns:
         new User object
@@ -378,6 +375,10 @@ def register_user(session, email, password, name):
             )
 
     EmailValidator()(email)
+    if session.query(User).filter(User.email == email).first() is not None:
+        raise ValueError(
+            f'A user with email address {email} already exists'
+        )
 
     if not password and server_mode not in ('personal', 'family'):
         raise ValueError('Password must be provided for public mode servers')
@@ -397,11 +398,6 @@ def register_user(session, email, password, name):
             message='Password must contain a number'
         )(password)
 
-        if session.query(User).filter(User.email == email).first() is not None:
-            raise ValueError(
-                f'A user with email address {email} already exists'
-            )
-
     # FIXME: Add Context Manager
     # with session:
 
@@ -420,8 +416,10 @@ def register_user(session, email, password, name):
         server_mode not in ('personal', 'family'),
     )
     if send_email:
-        # Send the registration confirmation email
-        send_confirmation_email(u)
+        # Send the registration confirmation email as long as we are not doing
+        # initial server setup
+        if not current_app.config.get('_JT_IN_SETUP', False):
+            send_confirmation_email(u)
 
     else:
         # Automatically confirm the user
@@ -509,7 +507,8 @@ def confirm_user(session, uid_hash, email):
         server_mode not in ('personal', 'family'),
     )
     if send_email:
-        send_welcome_email(u)
+        if not current_app.config.get('_JT_IN_SETUP', False):
+            send_welcome_email(u)
 
     return u
 
@@ -651,6 +650,12 @@ def login_user(session, email, password):
         if not u.check_password(password):
             raise AuthError('Invalid credentials', status_code=401)
 
+    if not u.confirmed:
+        raise AuthError('User has not confirmed registration', status_code=403)
+
+    if not u.active:
+        raise AuthError('User is not active', status_code=403)
+
     # Generate Token
     token = generate_user_token(
         u,
@@ -773,14 +778,14 @@ def send_confirmation_email(user):
         recipients=user.email,
         body=render_template(
             'email/text/reg-verify.text.j2',
-            confirm_token=confirm_token,
-            cancel_token=cancel_token,
+            confirm_token=confirm_token.decode('ascii'),
+            cancel_token=cancel_token.decode('ascii'),
             email=user.email,
         ),
         html=render_template(
             'email/html/reg-verify.html.j2',
-            confirm_token=confirm_token,
-            cancel_token=cancel_token,
+            confirm_token=confirm_token.decode('ascii'),
+            cancel_token=cancel_token.decode('ascii'),
             email=user.email,
         ),
     )

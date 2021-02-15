@@ -4,6 +4,8 @@ import json
 
 import pytest  # noqa: F401
 
+from jadetree.mail import mail
+
 # Always use 'mock_jt_config' and 'session' fixtures so database changes
 # are rolled back
 pytestmark = pytest.mark.usefixtures('mock_jt_config', 'mock_jt_setup', 'session')
@@ -25,7 +27,6 @@ def test_setup_api_no_defaults(app):
         assert len(data.keys()) == 0
 
 
-@pytest.mark.wip
 def test_setup_api_personal_with_no_password(app, monkeypatch):
     """Check the Setup API in Personal Mode with no password."""
     with app.test_client() as client:
@@ -44,7 +45,6 @@ def test_setup_api_personal_with_no_password(app, monkeypatch):
         assert rv.status_code == 204
 
 
-@pytest.mark.wip
 def test_setup_api_personal_with_blank_password(app):
     """Check the Setup API in Personal Mode with a blank password."""
     with app.test_client() as client:
@@ -64,7 +64,6 @@ def test_setup_api_personal_with_blank_password(app):
         assert rv.status_code == 204
 
 
-@pytest.mark.wip
 def test_setup_api_family_with_no_password(app):
     """Check the Setup API in Personal Mode with no password."""
     with app.test_client() as client:
@@ -83,7 +82,6 @@ def test_setup_api_family_with_no_password(app):
         assert rv.status_code == 204
 
 
-@pytest.mark.wip
 def test_setup_api_family_with_blank_password(app):
     """Check the Setup API in Family Mode with a blank password."""
     with app.test_client() as client:
@@ -103,8 +101,7 @@ def test_setup_api_family_with_blank_password(app):
         assert rv.status_code == 204
 
 
-@pytest.mark.wip
-def test_setup_api_oublic_with_no_password(app):
+def test_setup_api_public_with_no_password(app):
     """Check the Setup API in Public Mode with no password."""
     with app.test_client() as client:
         # Setup Server
@@ -137,7 +134,6 @@ def test_setup_api_oublic_with_no_password(app):
         assert 'Password' in data['errors']['json']['password'][0]
 
 
-@pytest.mark.wip
 def test_setup_api_public_with_blank_password(app):
     """Check the Setup API in Family Mode with a blank password."""
     with app.test_client() as client:
@@ -468,3 +464,25 @@ def test_setup_api_removes_endpoint(app):
             data=json.dumps(setup_data),
         )
         assert rv.status_code == 410
+
+
+def test_setup_api_does_not_send_email(app):
+    """Check that the Setup API does not send a confirmation email."""
+    with app.test_client() as client:
+        with mail.record_messages() as outbox:
+            # Setup Server
+            setup_data = {
+                'mode': 'public',
+                'email': 'test@jadetree.io',
+                'name': 'Test User',
+                'password': 'aSecr3tPa55w0rd',
+            }
+            rv = client.post(
+                '/api/v1/setup',
+                content_type='application/json',
+                data=json.dumps(setup_data),
+            )
+
+            assert rv.status_code == 204
+
+        assert len(outbox) == 0

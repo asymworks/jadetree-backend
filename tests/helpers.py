@@ -85,9 +85,9 @@ def check_error(rv, code, exc_class, message):
     assert message in data['message']
 
 
-def check_unauthorized(rv, message='Invalid credentials'):
+def check_unauthorized(rv, message='Invalid credentials', code=401):
     """Check that a login was rejected with invalid credentials."""
-    assert rv.status_code == 401
+    assert rv.status_code == code
 
     data = json.loads(rv.data)
     assert 'class' in data
@@ -96,6 +96,6 @@ def check_unauthorized(rv, message='Invalid credentials'):
     assert 'message' in data
 
     assert data['class'] == 'AuthError'
-    assert data['code'] == 401
+    assert data['code'] == code
     assert data['status'] == 'Unauthorized'
     assert message in data['message']

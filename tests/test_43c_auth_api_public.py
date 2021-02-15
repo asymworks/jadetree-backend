@@ -273,6 +273,39 @@ def test_register_new_user(app, session):
         assert user.check_password('aSecu43Pa55w0rd')
 
 
+def test_register_new_user_no_password(app, session):
+    """Register a new User in Family Mode without a password."""
+    with app.test_client() as client:
+        # Register a new User
+        user_data = {
+            'email': 'test2@jadetree.io',
+            'password': '',
+            'name': 'Second User',
+        }
+        rv = client.post(
+            '/api/v1/auth/register',
+            content_type='application/json',
+            data=json.dumps(user_data),
+        )
+
+        assert rv.status_code == 422
+
+        data = json.loads(rv.data)
+        assert 'status' in data
+        assert 'code' in data
+        assert 'errors' in data
+
+        assert data['code'] == 422
+        assert data['status'] == 'Unprocessable Entity'
+
+        assert len(data['errors']) == 1
+        assert 'json' in data['errors']
+        assert len(data['errors']['json']) == 1
+        assert 'password' in data['errors']['json']
+        assert len(data['errors']['json']['password']) == 1
+        assert 'Password' in data['errors']['json']['password'][0]
+
+
 def test_user_list(app):
     """Check that the User List is an empty list."""
     with app.test_client() as client:

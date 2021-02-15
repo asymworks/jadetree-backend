@@ -4,10 +4,13 @@ Jade Tree Personal Budgeting Application | jadetree.io
 Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
 """
 
-from marshmallow import Schema, fields
+from flask import current_app
+from marshmallow import Schema, ValidationError, fields, validates
 
 from jadetree.api.common import JTPasswordValidator
 from jadetree.api.v1.user.schema import UserSchema
+from jadetree.database import db
+from jadetree.service import auth as auth_service
 
 
 class LoginSchema(Schema):
@@ -31,8 +34,21 @@ class AuthUserSchema(Schema):
 class RegisterUserSchema(Schema):
     """Schema to register a new User."""
     email = fields.Email(required=True)
-    password = fields.Str(required=True, validate=JTPasswordValidator())
+    password = fields.Str(required=True)
     name = fields.Str(require=True)
+
+    @validates('email')
+    def validate_email(self, value):
+        """Ensure email is not already registered."""
+        if auth_service.load_user_by_email(db.session, value):
+            raise ValidationError('User already exists')
+
+    @validates('password')
+    def validate_password(self, value):
+        """Validate Password in Non-Family Mode."""
+        server_mode = current_app.config.get('_JT_SERVER_MODE')
+        if server_mode not in ('personal', 'family'):
+            JTPasswordValidator()(value)
 
 
 class RegistrationEmailSchema(Schema):
