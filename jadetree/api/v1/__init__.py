@@ -1,9 +1,8 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Version 1 API.
+
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
+"""
 
 from jadetree.api.common import JTApi
 
@@ -11,6 +10,7 @@ from .account import blp as account_api
 from .auth import blp as auth_api
 from .budget import blp as budget_api
 from .payee import blp as payee_api
+from .report import blp as report_api
 from .setup import blp as setup_api
 from .socketio import init_api_socketio
 from .transactions import blp as transaction_api
@@ -24,7 +24,7 @@ api_v1 = JTApi()
 
 
 def init_api(app):
-    '''Register the API with the Application'''
+    """Register the API with the Application."""
     api_v1.init_app(app, spec_kwargs=dict(
         title='Jade Tree',
         version='v1',
@@ -35,6 +35,7 @@ def init_api(app):
     api_v1.register_blueprint(auth_api, url_prefix='/api/v1')
     api_v1.register_blueprint(budget_api, url_prefix='/api/v1')
     api_v1.register_blueprint(payee_api, url_prefix='/api/v1')
+    api_v1.register_blueprint(report_api, url_prefix='/api/v1')
     api_v1.register_blueprint(setup_api, url_prefix='/api/v1')
     api_v1.register_blueprint(transaction_api, url_prefix='/api/v1')
     api_v1.register_blueprint(user_api, url_prefix='/api/v1')

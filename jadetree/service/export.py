@@ -1,9 +1,8 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Data Export Service.
+
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
+"""
 
 from jadetree.domain.models import Transaction, TransactionLine
 from jadetree.domain.types import AccountSubtype, AccountType, TransactionType
@@ -12,8 +11,7 @@ from jadetree.domain.types import AccountSubtype, AccountType, TransactionType
 
 
 def export_transaction_qif(txn, account):
-    '''
-    '''
+    """Export a Transaction as a QIF Record."""
     qif_lines = []
     qif_lines.append(f'D{txn.date.isoformat()}')
     if txn.check:
@@ -70,8 +68,7 @@ def export_transaction_qif(txn, account):
 
 
 def export_account_qif(session, account):
-    '''
-    '''
+    """Export Account Data as a QIF Record."""
     qif_lines = []
 
     # Account Information
@@ -126,8 +123,7 @@ def export_account_qif(session, account):
 
 
 def export_budget_qif(budget):
-    '''
-    '''
+    """Export Budget Data as QIF Records."""
     qif_lines = []
 
     # Budget Information
@@ -163,8 +159,7 @@ def export_budget_qif(budget):
 
 
 def export_payees_qif(payees):
-    '''
-    '''
+    """Export Payees as QIF Records."""
     qif_lines = []
     for payee in payees:
         qif_lines.append('!Type:Payee')
@@ -177,7 +172,7 @@ def export_payees_qif(payees):
             qif_lines.append(f'A{payee.account.id}')
         if payee.system:
             qif_lines.append('XS')
-        if not payee.visible:
+        if payee.hidden:
             qif_lines.append('XH')
         if payee.memo:
             qif_lines.append(f'M{payee.memo}')
