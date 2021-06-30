@@ -67,6 +67,7 @@ def app(request, app_config):
     a session-global temporary file, and initializes the application.
     """
     # Apply Database Migrations
+    _db.clear_mappers()
     _app = create_app(app_config, __name__)
     with _app.app_context():
         alembic_config = Config('migrations/alembic.ini')
