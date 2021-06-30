@@ -1,14 +1,14 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Database Interface.
+
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2021 Asymworks, LLC.  All Rights Reserved.
+"""
 
 import re
 
 from alembic.script import ScriptDirectory
 from flask import current_app
+from sqlalchemy import inspect
 
 from jadetree.exc import Error
 
@@ -19,14 +19,13 @@ __all__ = ('db', 'migrate', 'init_db')
 
 
 def check_database():
-    '''Called before each request to ensure database schema is initialized'''
+    """Check that the database schema is initialized."""
     if current_app.config.get('_JT_DB_NEEDS_INIT'):
         raise Error('Database is not initialized')
 
 
 def init_db(app):
-    '''Initialize the Global Database Object for the Application'''
-
+    """Initialize the Global Database Object for the Application."""
     # Set SQLalchemy Defaults (suppresses warning)
     app.config.setdefault('SQLALCHEMY_TRACK_MODIFICATIONS', False)
 
@@ -61,7 +60,7 @@ def init_db(app):
     app.config['_JT_DB_HEAD_REV'] = None
     app.config['_JT_DB_CUR_REV'] = None
     with app.app_context():
-        if db.engine.dialect.has_table(db.engine, 'alembic_version'):
+        if inspect(db.engine).has_table('alembic_version'):
             app.config['_JT_DB_NEEDS_INIT'] = False
 
             db_version_sql = db.text('select version_num from alembic_version')

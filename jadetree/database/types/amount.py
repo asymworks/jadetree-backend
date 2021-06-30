@@ -1,9 +1,8 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Database Amount Type.
+
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2021 Asymworks, LLC.  All Rights Reserved.
+"""
 
 from decimal import Decimal, getcontext
 
@@ -13,7 +12,8 @@ __all__ = ('AmountType', )
 
 
 class AmountType(TypeDecorator):
-    '''
+    """SQLalchemy Amount Type.
+
     Implements a database-agnostic fixed-point decimal datatype suitable for
     storing currency amounts.  Internally this either uses the database-native
     fixed-point type for MySQL and PostgreSQL (DECIMAL and MONEY, respectively)
@@ -26,22 +26,26 @@ class AmountType(TypeDecorator):
     one trillion currency units, but the precision and scale may be overridden.
     SQLite and PostgreSQL use 64-bit integers as the underlying storage, so the
     practical limit on the precision (total digits) is 18.
-    '''
+    """
+    #: Caching is allowed
+    cache_ok = True
 
     #: Native Column Implementation
     impl = Numeric
 
     def __init__(self, precision=13, scale=4):
+        """Class constructor."""
         super().__init__()
         self._precision = precision
         self._scale = scale
         self._multiplier = 10**scale
 
     def load_dialect_impl(self, dialect):
-        '''
-        Use the native Numeric class if possible; on SQLite fall back to
+        """Load the dialect-native type.
+
+        Uses the native Numeric class if possible; on SQLite fall back to
         Integer
-        '''
+        """
         if dialect.name == 'sqlite':
             return dialect.type_descriptor(Integer())
         else:
@@ -50,7 +54,7 @@ class AmountType(TypeDecorator):
             )
 
     def process_bind_param(self, value, dialect):
-        '''Assign the Bind Parameter Value from :class:`decimal.Decimal`'''
+        """Assign the Bind Parameter Value from :class:`decimal.Decimal`."""
         if value is None:
             return None
         elif dialect.name == 'sqlite':
@@ -67,7 +71,7 @@ class AmountType(TypeDecorator):
         return value
 
     def process_result_value(self, value, dialect):
-        '''Assign the Result Value to :class:`decimal.Decimal`'''
+        """Assign the Result Value to :class:`decimal.Decimal`."""
         if value is None:
             return None
         elif dialect.name == 'sqlite':

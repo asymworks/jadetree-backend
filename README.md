@@ -30,6 +30,32 @@ Installation
 
 Coming Soon
 
+Developing on Apple M1
+----------------------
+
+Jade Tree is developed on an Apple M1 machine; however, the Python cryptography
+library (specifically the libcffi dependency) is not yet shipping arm64 wheels,
+so the backend will not run without additional help. The solution found at
+https://stackoverflow.com/questions/66035003/installing-cryptography-on-an-apple-silicon-m1-mac
+seems to work, and is what is recommended here. Prerequisites are having Homebrew
+installed in the default `/opt/homebrew` location and libffi installed via
+`brew install libffi`. Use this process to initialize a new development setup:
+
+```shellscript
+# Clone new repository:
+$ git clone https://github.com/asymworks/jadetree-backend.git
+$ cd jadetree-backend
+
+# Reinstall cffi:
+$ poetry install
+$ poetry run python -m pip uninstall cffi cryptography
+$ LDFLAGS=-L$(brew --prefix libffi)/lib CFLAGS=-I$(brew --prefix libffi)/include poetry run python -m pip install cffi --no-binary :all:
+$ poetry run python -m pip install cryptography
+
+# Ensure tests pass:
+$ make test
+```
+
 Contribute
 ----------
 

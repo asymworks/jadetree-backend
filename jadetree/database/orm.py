@@ -1,9 +1,8 @@
-# =============================================================================
-#
-# Jade Tree Personal Budgeting Application | jadetree.io
-# Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
-#
-# =============================================================================
+"""Jade Tree Database ORM Setup.
+
+Jade Tree Personal Budgeting Application | jadetree.io
+Copyright (c) 2021 Asymworks, LLC.  All Rights Reserved.
+"""
 
 from sqlalchemy import and_
 
@@ -38,10 +37,7 @@ __all__ = ('init_orm', )
 
 
 def init_orm():
-    '''
-    Initialize the SQLalchemy Object Relation Mappers (ORM) to map the domain
-    classes with the database tables.
-    '''
+    """Initialize the SQLalchemy ORM."""
     # User
     db.mapper(User, users, properties={
         'accounts': db.relationship(
@@ -116,7 +112,7 @@ def init_orm():
             Category,
             remote_side=[categories.c.id],
         ),
-        'children': db.relationship(Category),
+        'children': db.relationship(Category, viewonly=True),
         'entries': db.relationship(
             BudgetEntry,
             backref='category',
