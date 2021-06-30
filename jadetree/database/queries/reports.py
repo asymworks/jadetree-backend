@@ -15,7 +15,7 @@ from jadetree.domain.models import (
 from jadetree.domain.types import AccountType
 
 
-def q_report_net_worth(session, user_id):
+def q_report_net_worth(session, user_id, *, filter_accounts=None):
     """Report Assets and Liabilities by month.
 
     Summarizes a user's total assets and liabilities by month. The net worth
@@ -25,6 +25,8 @@ def q_report_net_worth(session, user_id):
     Args:
         session: Database Session
         user_id: User Id for Net Worth Calculation
+        filter_accounts: List of Account Ids to include in the report. If the
+            argument is None (the default), all accounts are used.
 
     Returns:
         SQLalchemy Query with columns (year, month, assets, liabilities)
@@ -61,7 +63,13 @@ def q_report_net_worth(session, user_id):
     ).filter(
         Account.type.in_((AccountType.Asset, AccountType.Liability)),
         Account.user_id == user_id
-    ).subquery()
+    )
+
+    # Apply filters to subquery
+    if filter_accounts:
+        sq = sq.filter(Account.id.in_(filter_accounts))
+
+    sq = sq.subquery()
 
     return session.query(
         sq.c.year,

@@ -10,7 +10,7 @@ from jadetree.api.common import JTApiBlueprint, auth
 from jadetree.database import db
 from jadetree.service.report import net_worth
 
-from .schema import NetWorthReportSchema
+from .schema import NetWorthReportSchema, ReportFilterSchema
 
 #: Authentication Service Blueprint
 blp = JTApiBlueprint('report', __name__, description='Report Service')
@@ -20,7 +20,16 @@ blp = JTApiBlueprint('report', __name__, description='Report Service')
 class PayeeList(MethodView):
     """API Endpoint for Net Worth report data."""
     @auth.login_required
+    @blp.arguments(
+        ReportFilterSchema(
+            context=dict(
+                accept_categories=False,
+                accept_payees=False,
+            ),
+        ),
+        location='query'
+    )
     @blp.response(NetWorthReportSchema(many=True))
-    def get(self):
+    def get(self, query_args):
         """Return the Net Worth Report Data."""
-        return net_worth(db.session, auth.current_user())
+        return net_worth(db.session, auth.current_user(), filter=query_args)
