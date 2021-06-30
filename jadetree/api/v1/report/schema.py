@@ -50,3 +50,17 @@ class NetWorthReportSchema(Schema):
     assets = fields.Decimal(places=4, as_string=True)
     liabilities = fields.Decimal(places=4, as_string=True)
     currency = fields.Str()
+
+
+class CategoryReportSchema(Schema):
+    """Category spending report schema."""
+    category_id = fields.Integer()
+    amount = fields.Decimal(places=4, as_string=True)
+    currency = fields.Str()
+
+
+class PayeeReportSchema(Schema):
+    """Payee spending report schema."""
+    payee_id = fields.Integer()
+    amount = fields.Decimal(places=4, as_string=True)
+    currency = fields.Str()

@@ -4,15 +4,20 @@ Jade Tree Personal Budgeting Application | jadetree.io
 Copyright (c) 2021 Asymworks, LLC.  All Rights Reserved.
 """
 
-from sqlalchemy import case, func
+import datetime
+
+from sqlalchemy import and_, case, func
 
 from jadetree.domain.models import (
     Account,
+    Category,
+    Payee,
     Transaction,
     TransactionEntry,
     TransactionLine,
+    TransactionSplit,
 )
-from jadetree.domain.types import AccountType
+from jadetree.domain.types import AccountRole, AccountType
 
 
 def q_report_net_worth(session, user_id, *, filter_accounts=None):
@@ -84,4 +89,131 @@ def q_report_net_worth(session, user_id, *, filter_accounts=None):
         ).label('liabilities'),
     ).order_by(
         'year', 'month'
+    )
+
+
+def sq_spending_report(session, budget_id, *, filter):
+    """Generate a Spending Report subquery for Category or Payee reporting.
+
+    Summarizes a user's spending per category over a range of months. Note this
+    only returns expenses; income is not reported.
+
+    Args:
+        session: Database Session
+        budget_id: Budget Id for Reporting
+        filter: Dictionary of filters to apply to the query (accepts `start_date`,
+            `end_date`, `categories`, `payees`, and `accounts` keys)
+
+    Returns:
+        SQLalchemy Query with columns (`year`, `month`, `account_id`, `category_id`,
+            `payee_id`, `amount`, `currency`)
+    """
+    sq = session.query(
+        Category.id.label('category_id'),
+        Payee.id.label('payee_id'),
+        func.sum(TransactionEntry.amount).label('amount'),
+        TransactionEntry.currency.label('currency')
+    ).join(
+        TransactionLine,
+        TransactionLine.id == TransactionEntry.line_id
+    ).join(
+        Transaction,
+        Transaction.id == TransactionLine.transaction_id
+    ).join(
+        Account,
+        Account.id == TransactionLine.account_id
+    ).join(
+        TransactionSplit,
+        TransactionSplit.transaction_id == Transaction.id
+    ).join(
+        Category,
+        Category.id == TransactionSplit.category_id
+    ).join(
+        Payee,
+        Payee.id == Transaction.payee_id
+    ).filter(
+        Account.role == AccountRole.Budget,
+        Account.type == AccountType.Expense,
+        Account.budget_id == budget_id,
+        Category.system == False,               # noqa: E712
+        Payee.system == False,                  # noqa: E712
+    ).group_by(
+        TransactionEntry.currency,
+        Payee.id,
+        Category.id
+    )
+
+    # Apply filters to subquery
+    if 'accounts' in filter:
+        sq = sq.filter(Transaction.account_id.in_(filter['accounts']))
+
+    if 'categories' in filter:
+        sq = sq.filter(Category.id.in_(filter['categories']))
+
+    if 'payees' in filter:
+        sq = sq.filter(Payee.id.in_(filter['payees']))
+
+    if 'start_date' in filter and 'end_date' in filter:
+        end_month = filter['end_date'] + datetime.timedelta(days=32)
+        end_month.replace(day=1)
+
+        sq = sq.filter(and_(
+            Transaction.date >= filter['start_date'],
+            Transaction.date < end_month,
+        ))
+
+    return sq.subquery()
+
+
+def q_report_by_category(session, budget_id, *, filter=None):
+    """Report Category spending by month.
+
+    Summarizes a user's spending per category over a range of months. Note this
+    only returns expenses; income is not reported.
+
+    Args:
+        session: Database Session
+        budget_id: Budget Id for Reporting
+        filter: Dictionary of filters to apply to the query (accepts `start_date`,
+            `end_date`, `categories`, `payees`, and `accounts` keys)
+
+    Returns:
+        SQLalchemy Query with columns (category_id, amount, currency)
+    """
+    sq = sq_spending_report(session, budget_id, filter=filter)
+
+    return session.query(
+        sq.c.category_id,
+        func.sum(sq.c.amount),
+        sq.c.currency
+    ).group_by(
+        sq.c.currency,
+        sq.c.category_id
+    )
+
+
+def q_report_by_payee(session, budget_id, *, filter=None):
+    """Report Payee spending by month.
+
+    Summarizes a user's spending per payee over a range of months. Note this
+    only returns expenses; income is not reported.
+
+    Args:
+        session: Database Session
+        budget_id: Budget Id for Reporting
+        filter: Dictionary of filters to apply to the query (accepts `start_date`,
+            `end_date`, `categories`, `payees`, and `accounts` keys)
+
+    Returns:
+        SQLalchemy Query with columns (payee_id, amount, currency)
+    """
+    sq = sq_spending_report(session, budget_id, filter=filter)
+
+    return session.query(
+        sq.c.payee_id,
+        func.sum(sq.c.amount),
+        sq.c.currency
+    ).group_by(
+        sq.c.currency,
+        sq.c.payee_id
     )

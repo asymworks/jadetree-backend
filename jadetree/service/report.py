@@ -7,7 +7,9 @@ Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
 import datetime
 
 from jadetree.database.queries import q_report_net_worth
+from jadetree.database.queries.reports import q_report_by_category, q_report_by_payee
 
+from .budget import _load_budget
 from .util import check_session, check_user
 
 
@@ -47,5 +49,45 @@ def net_worth(session, user, filter=None):
             d for d in data
             if d['month'] >= filter['start_date'] and d['month'] <= filter['end_date']
         ]
+
+    return data
+
+
+def spending_by_category(session, user, budget_id, filter=None):
+    """Report the user's spending by category."""
+    check_session(session)
+    check_user(user)
+
+    # Check existence and authorization for budget id
+    _load_budget(session, user, budget_id)
+
+    q = q_report_by_category(session, budget_id, filter=filter)
+    data = []
+    for category_id, amount, currency in q.all():
+        data.append(dict(
+            category_id=category_id,
+            amount=amount,
+            currency=currency,
+        ))
+
+    return data
+
+
+def spending_by_payee(session, user, budget_id, filter=None):
+    """Report the user's spending by payee."""
+    check_session(session)
+    check_user(user)
+
+    # Check existence and authorization for budget id
+    _load_budget(session, user, budget_id)
+
+    q = q_report_by_payee(session, budget_id, filter=filter)
+    data = []
+    for payee_id, amount, currency in q.all():
+        data.append(dict(
+            payee_id=payee_id,
+            amount=amount,
+            currency=currency,
+        ))
 
     return data
