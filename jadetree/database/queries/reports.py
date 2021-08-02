@@ -217,3 +217,48 @@ def q_report_by_payee(session, budget_id, *, filter=None):
         sq.c.currency,
         sq.c.payee_id
     )
+
+
+def q_report_income(session, budget_id, *, filter=None):
+    """Report Income over a Time.
+
+    Args:
+        session: Database Session
+        budget_id: Budget Id for Reporting
+        filter: Dictionary of filters to apply to the query (accepts `start_date`
+            and `end_date`)
+
+    Returns:
+        SQLalchemy Query with columns (income, currency)
+    """
+    q = session.query(
+        func.sum(TransactionEntry.amount).label('amount'),
+        TransactionEntry.currency.label('currency')
+    ).join(
+        TransactionLine,
+        TransactionLine.id == TransactionEntry.line_id
+    ).join(
+        Transaction,
+        Transaction.id == TransactionLine.transaction_id
+    ).join(
+        Account,
+        Account.id == TransactionLine.account_id
+    ).filter(
+        Account.role == AccountRole.Budget,
+        Account.type == AccountType.Income,
+        Account.budget_id == budget_id,
+    ).group_by(
+        TransactionEntry.currency,
+    )
+
+    # Apply filters to subquery
+    if 'start_date' in filter and 'end_date' in filter:
+        end_month = filter['end_date'] + datetime.timedelta(days=32)
+        end_month.replace(day=1)
+
+        q = q.filter(and_(
+            Transaction.date >= filter['start_date'],
+            Transaction.date < end_month,
+        ))
+
+    return q

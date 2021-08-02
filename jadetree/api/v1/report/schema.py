@@ -64,3 +64,12 @@ class PayeeReportSchema(Schema):
     payee_id = fields.Integer()
     amount = fields.Decimal(places=4, as_string=True)
     currency = fields.Str()
+
+
+class IncomeAllocationReportSchema(Schema):
+    """Income allocation report schema."""
+    income = fields.Decimal(places=4, as_string=True)
+    spent = fields.Decimal(places=4, as_string=True)
+    unspent = fields.Decimal(places=4, as_string=True)
+    currency = fields.Str()
+    categories = fields.List(fields.Nested(CategoryReportSchema))

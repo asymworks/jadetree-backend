@@ -8,10 +8,16 @@ from flask.views import MethodView
 
 from jadetree.api.common import JTApiBlueprint, auth
 from jadetree.database import db
-from jadetree.service.report import net_worth, spending_by_category, spending_by_payee
+from jadetree.service.report import (
+    income_allocation,
+    net_worth,
+    spending_by_category,
+    spending_by_payee,
+)
 
 from .schema import (
     CategoryReportSchema,
+    IncomeAllocationReportSchema,
     NetWorthReportSchema,
     PayeeReportSchema,
     ReportFilterSchema,
@@ -60,3 +66,22 @@ class PayeeSpendingReport(MethodView):
     def get(self, query_args, budget_id):
         """Return the Net Worth Report Data."""
         return spending_by_payee(db.session, auth.current_user(), budget_id, filter=query_args)
+
+
+@blp.route('/report/<int:budget_id>/incomeAlloc')
+class IncomeAllocationReport(MethodView):
+    """API Endpoint for Per-Payee Spending report data."""
+    @auth.login_required
+    @blp.arguments(
+        ReportFilterSchema(
+            context=dict(
+                accept_categories=False,
+                accept_payees=False,
+            ),
+        ),
+        location='query'
+    )
+    @blp.response(IncomeAllocationReportSchema())
+    def get(self, query_args, budget_id):
+        """Return the Net Worth Report Data."""
+        return income_allocation(db.session, auth.current_user(), budget_id, filter=query_args)

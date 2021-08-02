@@ -7,7 +7,11 @@ Copyright (c) 2020 Asymworks, LLC.  All Rights Reserved.
 import datetime
 
 from jadetree.database.queries import q_report_net_worth
-from jadetree.database.queries.reports import q_report_by_category, q_report_by_payee
+from jadetree.database.queries.reports import (
+    q_report_by_category,
+    q_report_by_payee,
+    q_report_income,
+)
 
 from .budget import _load_budget
 from .util import check_session, check_user
@@ -91,3 +95,26 @@ def spending_by_payee(session, user, budget_id, filter=None):
         ))
 
     return data
+
+
+def income_allocation(session, user, budget_id, filter=None):
+    """Report the user's income allocation."""
+    check_session(session)
+    check_user(user)
+
+    # Check existence and authorization for budget id
+    _load_budget(session, user, budget_id)
+
+    q_income = q_report_income(session, budget_id, filter=filter)
+    income, currency = q_income.one()
+    categories = spending_by_category(session, user, budget_id, filter=filter)
+    # TODO: Multi-Currency Support
+    spent = sum([c['amount'] for c in categories])
+
+    return dict(
+        income=income,
+        spent=spent,
+        unspent=income - spent,
+        currency=currency,
+        categories=categories,
+    )
