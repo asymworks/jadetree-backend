@@ -23,13 +23,13 @@ jobs:
       uses: docker/metadata-action@v3
       with:
         images: asymworks/jadetree-backend
+        flavor: latest=true
         tags: |
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}-alpha
           type=semver,pattern={{major}}-alpha
           type=raw,value=0-alpha
           type-raw,value=0.9-alpha
-          type=sha
 
     - uses: docker/setup-qemu-action@master
       with:
