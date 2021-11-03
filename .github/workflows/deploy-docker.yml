@@ -11,7 +11,7 @@ on:
 
 jobs:
   push_to_registry:
-    name: Deploy to Docker Hub
+    name: Build and Deploy Docker Images
     runs-on: ubuntu-20.04
 
     steps:
@@ -27,7 +27,7 @@ jobs:
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}-alpha
           type=semver,pattern={{major}}-alpha
-          type=ref
+          type=sha
 
     - uses: docker/setup-qemu-action@master
       with:
