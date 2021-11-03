@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.8-slim-buster
 
 RUN groupadd -g 8733 jadetree \
   && adduser --disabled-password --uid 8733 --gid 8733 jadetree
