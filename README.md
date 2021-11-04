@@ -21,6 +21,7 @@ $ git clone https://github.com/asymworks/jadetree-backend.git jadetree
 $ docker-compose -f jadetree/docker-compose.yml up -d
 $ docker-compose -f jadetree/docker-compose.yml \
     exec backend /home/jadetree/docker-entry.sh db upgrade
+$ docker-compose -f jadetree/docker-compose.yml restart backend
 ```
 
 Then access the Jade Tree instance at http://localhost:8733
