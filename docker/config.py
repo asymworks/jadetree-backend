@@ -32,5 +32,17 @@ LOGGING_LEVEL = 'debug'
 LOGGING_FORMAT = '[%(asctime)s] [%(remote_addr)s - %(url)s] %(levelname)s in %(module)s: %(message)s'
 LOGGING_BACKTRACE = False
 
+# Frontend Configuration
+FRONTEND_HOST = 'http://localhost:8733'
+FRONTEND_LOGIN_PATH = '/login'
+FRONTEND_LOGO_PATH = '/apple-touch-icon.png'
+FRONTEND_REG_CONFIRM_PATH = '/register/confirm'
+FRONTEND_REG_CANCEL_PATH = '/register/cancel'
+FRONTEND_REG_RESEND_PATH = '/register/resend'
+
+# Site Email Configuration
+SITE_ABUSE_MAILBOX = 'abuse@localhost'
+SITE_HELP_MAILBOX = 'info@localhost'
+
 # Server User Information
 SERVER_MODE = 'personal'

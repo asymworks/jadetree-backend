@@ -27,7 +27,7 @@ services:
     volumes:
       - type: bind
         source: ./docker/config.py
-        target: /home/jadetree/config.py:ro
+        target: /home/jadetree/config.py
     restart: always
 
   # Jadetree Frontend
